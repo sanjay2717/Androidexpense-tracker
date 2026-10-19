@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import NetInfo from '@react-native-community/netinfo';
 import { useHomeDashboardData } from '../../src/lib/api';
 import { useLoading } from '../../src/context/LoadingContext';
 import { CountUpText } from '../../src/components/CountUpText';
@@ -35,9 +36,17 @@ const AVATAR_URL =
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { metrics, isLoading, isError, error, refetch } = useHomeDashboardData();
+  const { metrics, isLoading, isError, error, dataUpdatedAt, refetch } = useHomeDashboardData();
   const { reloadApp } = useLoading();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [isOnline, setIsOnline] = React.useState<boolean>(true);
+
+  React.useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsOnline(Boolean(state.isConnected && state.isInternetReachable !== false));
+    });
+    return () => unsubscribe();
+  }, []);
 
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
@@ -60,6 +69,26 @@ export default function HomeScreen() {
   };
 
   const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
+
+  // Format real sync status from query dataUpdatedAt
+  const formatSyncStatus = () => {
+    if (!isOnline) {
+      return 'Offline';
+    }
+    if (!dataUpdatedAt) {
+      return 'Synced · Just now';
+    }
+    const diffSec = Math.floor((Date.now() - dataUpdatedAt) / 1000);
+    if (diffSec < 60) {
+      return 'Synced · Just now';
+    }
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) {
+      return `Synced · ${diffMin}m ago`;
+    }
+    const diffHours = Math.floor(diffMin / 60);
+    return `Synced · ${diffHours}h ago`;
+  };
 
   return (
     <View style={[styles.rootContainer, { paddingTop: insets.top }]}>
@@ -142,8 +171,19 @@ export default function HomeScreen() {
         <View style={styles.balanceCardHeader}>
           <Text style={styles.balanceCardLabel}>Total Balance</Text>
           <View style={styles.liveWalletBadge}>
-            <View style={styles.livePulseDot} />
-            <Text style={styles.liveWalletText}>Live Wallet</Text>
+            <View
+              style={[
+                styles.livePulseDot,
+                metrics.wallets.length === 0 && { backgroundColor: theme.colors.outline },
+              ]}
+            />
+            <Text style={styles.liveWalletText}>
+              {metrics.wallets.length === 0
+                ? 'No Wallets'
+                : metrics.wallets.length === 1
+                ? metrics.wallets[0].name || 'Cash'
+                : `${metrics.wallets.length} Wallets`}
+            </Text>
           </View>
         </View>
 
@@ -188,6 +228,16 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* Wallets Empty State Notice if no wallets exist */}
+      {metrics.wallets.length === 0 && (
+        <View style={styles.emptyWalletCard}>
+          <Text style={styles.emptyWalletTitle}>Create your first wallet</Text>
+          <Text style={styles.emptyWalletSubtitle}>
+            No wallets were found in your account. Add a wallet in Supabase to start tracking balances.
+          </Text>
+        </View>
+      )}
+
       {/* Monthly Budget Progress Card */}
       <View style={styles.card}>
         <View style={styles.cardHeaderRow}>
@@ -195,45 +245,61 @@ export default function HomeScreen() {
             <View style={styles.budgetDot} />
             <Text style={styles.cardTitle}>Monthly Budget</Text>
           </View>
-          <View style={styles.budgetPctBadge}>
-            <Text style={styles.budgetPctText}>{metrics.spentPercentage}% used</Text>
-          </View>
+          {metrics.hasBudget && metrics.spentPercentage !== null && (
+            <View style={styles.budgetPctBadge}>
+              <Text style={styles.budgetPctText}>{metrics.spentPercentage}% used</Text>
+            </View>
+          )}
         </View>
 
-        <View style={styles.budgetAmountsRow}>
-          <View style={styles.spentAmountCol}>
-            <Text style={styles.spentAmountText}>
-              ₹{metrics.spent.toLocaleString('en-IN')}
+        {metrics.hasBudget && metrics.targetBudget !== null ? (
+          <>
+            <View style={styles.budgetAmountsRow}>
+              <View style={styles.spentAmountCol}>
+                <Text style={styles.spentAmountText}>
+                  ₹{metrics.spent.toLocaleString('en-IN')}
+                </Text>
+                <Text style={styles.spentLabel}> spent</Text>
+              </View>
+              <Text style={styles.targetBudgetText}>
+                Target: <Text style={styles.targetBold}>₹{metrics.targetBudget.toLocaleString('en-IN')}</Text>
+              </Text>
+            </View>
+
+            {/* Sleek Progress Track */}
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  { width: `${Math.min(100, Math.max(4, metrics.spentPercentage ?? 0))}%` },
+                ]}
+              />
+            </View>
+
+            {/* Micro status note */}
+            <View style={styles.budgetFooterRow}>
+              <View style={styles.safeCapRow}>
+                <CheckCircleIcon size={14} color={theme.colors.emeraldDark} />
+                <Text style={styles.safeCapText}>
+                  Safe daily cap:{' '}
+                  <Text style={styles.boldText}>
+                    ₹{metrics.safeDailyCap?.toLocaleString('en-IN') ?? 0}/day
+                  </Text>
+                </Text>
+              </View>
+              <Text style={styles.leftBudgetText}>
+                ₹{metrics.leftInBudget?.toLocaleString('en-IN') ?? 0} left
+              </Text>
+            </View>
+          </>
+        ) : (
+          <View style={styles.noBudgetPromptBox}>
+            <Text style={styles.noBudgetPromptTitle}>Set a monthly budget</Text>
+            <Text style={styles.noBudgetPromptSubtitle}>
+              Assign budget limits to your categories in Supabase to view live progress, daily caps, and remaining allowances.
             </Text>
-            <Text style={styles.spentLabel}> spent</Text>
           </View>
-          <Text style={styles.targetBudgetText}>
-            Target: <Text style={styles.targetBold}>₹{metrics.targetBudget.toLocaleString('en-IN')}</Text>
-          </Text>
-        </View>
-
-        {/* Sleek Progress Track */}
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressBarFill,
-              { width: `${Math.min(100, Math.max(4, metrics.spentPercentage))}%` },
-            ]}
-          />
-        </View>
-
-        {/* Micro status note */}
-        <View style={styles.budgetFooterRow}>
-          <View style={styles.safeCapRow}>
-            <CheckCircleIcon size={14} color={theme.colors.emeraldDark} />
-            <Text style={styles.safeCapText}>
-              Safe daily cap: <Text style={styles.boldText}>₹{metrics.safeDailyCap.toLocaleString('en-IN')}/day</Text>
-            </Text>
-          </View>
-          <Text style={styles.leftBudgetText}>
-            ₹{metrics.leftInBudget.toLocaleString('en-IN')} left
-          </Text>
-        </View>
+        )}
       </View>
 
       {/* Category Spending Donut Chart Card */}
@@ -254,80 +320,102 @@ export default function HomeScreen() {
       <View style={styles.transactionsSection}>
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Recent Transactions</Text>
-          <TouchableOpacity
-            style={styles.seeAllBtn}
-            onPress={() => router.push('/modal')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.seeAllText}>See All</Text>
-            <ChevronRightIcon size={16} color={theme.colors.primary} />
-          </TouchableOpacity>
+          {metrics.recentTransactions.length > 0 && (
+            <TouchableOpacity
+              style={styles.seeAllBtn}
+              onPress={() => router.push('/add' as any)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.seeAllText}>Add New</Text>
+              <ChevronRightIcon size={16} color={theme.colors.primary} />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.transactionsCard}>
-          {metrics.recentTransactions.slice(0, 5).map((item, index) => {
-            const isIncome = item.type === 'income';
-            const categoryName = item.category?.name || 'General';
+          {metrics.recentTransactions.length === 0 ? (
+            <TouchableOpacity
+              style={styles.emptyTransactionBox}
+              onPress={() => router.push('/add' as any)}
+              activeOpacity={0.75}
+            >
+              <View style={styles.emptyTxIconCircle}>
+                <Text style={styles.emptyTxPlusSymbol}>+</Text>
+              </View>
+              <Text style={styles.emptyTransactionTitle}>Add your first transaction</Text>
+              <Text style={styles.emptyTransactionSubtitle}>
+                No expenses or income recorded yet. Tap here or the '+' button below to get started.
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            metrics.recentTransactions.slice(0, 5).map((item, index) => {
+              const isIncome = item.type === 'income';
+              const categoryName = item.category?.name || 'General';
+              const walletName = item.wallet?.name;
 
-            return (
-              <TouchableOpacity
-                key={item.id || String(index)}
-                style={[
-                  styles.txRow,
-                  index % 2 === 1 && styles.txRowAlt,
-                ]}
-                onPress={handleTransactionPress}
-                activeOpacity={0.7}
-              >
-                <View style={styles.txLeft}>
-                  <View
-                    style={[
-                      styles.txIconContainer,
-                      isIncome
-                        ? { backgroundColor: theme.colors.emeraldLight }
-                        : { backgroundColor: theme.colors.primaryFixed },
-                    ]}
-                  >
-                    <CategoryIcon
-                      name={item.note || categoryName}
-                      color={isIncome ? theme.colors.emeraldDark : theme.colors.primaryContainer}
-                      size={20}
-                    />
+              return (
+                <TouchableOpacity
+                  key={item.id || String(index)}
+                  style={[
+                    styles.txRow,
+                    index % 2 === 1 && styles.txRowAlt,
+                  ]}
+                  onPress={handleTransactionPress}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.txLeft}>
+                    <View
+                      style={[
+                        styles.txIconContainer,
+                        isIncome
+                          ? { backgroundColor: theme.colors.emeraldLight }
+                          : { backgroundColor: theme.colors.primaryFixed },
+                      ]}
+                    >
+                      <CategoryIcon
+                        name={item.note || categoryName}
+                        color={isIncome ? theme.colors.emeraldDark : theme.colors.primaryContainer}
+                        size={20}
+                      />
+                    </View>
+                    <View style={styles.txTextCol}>
+                      <Text style={styles.txTitle} numberOfLines={1}>
+                        {item.note || categoryName}
+                      </Text>
+                      <Text style={styles.txMeta} numberOfLines={1}>
+                        {categoryName} · {isIncome ? 'Income' : 'Expense'}
+                      </Text>
+                    </View>
                   </View>
-                  <View style={styles.txTextCol}>
-                    <Text style={styles.txTitle} numberOfLines={1}>
-                      {item.note || categoryName}
-                    </Text>
-                    <Text style={styles.txMeta} numberOfLines={1}>
-                      {categoryName} · {isIncome ? 'Income' : 'Expense'}
-                    </Text>
-                  </View>
-                </View>
 
-                <View style={styles.txRight}>
-                  <Text
-                    style={[
-                      styles.txAmount,
-                      isIncome ? styles.txAmountIncome : styles.txAmountExpense,
-                    ]}
-                  >
-                    {isIncome ? '+' : '-'}₹{item.amount.toLocaleString('en-IN')}
-                  </Text>
-                  <Text style={styles.txTag}>
-                    {isIncome ? 'Credited' : (item.wallet?.name || 'HDFC Card')}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+                  <View style={styles.txRight}>
+                    <Text
+                      style={[
+                        styles.txAmount,
+                        isIncome ? styles.txAmountIncome : styles.txAmountExpense,
+                      ]}
+                    >
+                      {isIncome ? '+' : '-'}₹{item.amount.toLocaleString('en-IN')}
+                    </Text>
+                    {walletName ? (
+                      <Text style={styles.txTag}>{walletName}</Text>
+                    ) : null}
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
       </View>
 
       {/* Quick Action Pill Row */}
       <View style={styles.syncPillContainer}>
         <View style={styles.syncPill}>
-          <ShieldCheckIcon size={16} color={theme.colors.primary} />
-          <Text style={styles.syncText}>All accounts synced safely 2m ago</Text>
+          <ShieldCheckIcon
+            size={16}
+            color={isOnline ? theme.colors.primary : theme.colors.secondary}
+          />
+          <Text style={styles.syncText}>{formatSyncStatus()}</Text>
         </View>
       </View>
 
@@ -856,5 +944,73 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     color: '#76747E',
     marginTop: 2,
+  },
+  emptyWalletCard: {
+    backgroundColor: '#fff1f2',
+    borderWidth: 1,
+    borderColor: '#fecdd3',
+    borderRadius: theme.radii.card,
+    padding: theme.spacing.md,
+    marginBottom: 12,
+  },
+  emptyWalletTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#be123c',
+    marginBottom: 4,
+  },
+  emptyWalletSubtitle: {
+    fontSize: 12,
+    color: '#9f1239',
+    lineHeight: 16,
+  },
+  noBudgetPromptBox: {
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+  },
+  noBudgetPromptTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.colors.onSurface,
+    marginBottom: 4,
+  },
+  noBudgetPromptSubtitle: {
+    fontSize: 12,
+    color: theme.colors.secondary,
+    lineHeight: 17,
+  },
+  emptyTransactionBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+  },
+  emptyTxIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.surfaceContainerLow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  emptyTxPlusSymbol: {
+    fontSize: 24,
+    color: theme.colors.primary,
+    fontWeight: '600',
+    marginTop: -2,
+  },
+  emptyTransactionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: theme.colors.onSurface,
+    marginBottom: 4,
+  },
+  emptyTransactionSubtitle: {
+    fontSize: 12,
+    color: theme.colors.secondary,
+    textAlign: 'center',
+    lineHeight: 17,
+    maxWidth: 260,
   },
 });

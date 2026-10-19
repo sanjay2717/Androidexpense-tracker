@@ -33,13 +33,15 @@ export function DonutChart({ data, totalAmount }: DonutChartProps) {
     opacity: opacity.value,
   }));
 
-  // Format chart data for gifted-charts
-  const pieData = data.length > 0
+  const hasData = data.length > 0 && totalAmount > 0;
+
+  // Format chart data for gifted-charts - empty ring when no spending
+  const pieData = hasData
     ? data.map((item) => ({
         value: Math.max(1, item.amount),
         color: item.color,
       }))
-    : [{ value: 1, color: theme.colors.surfaceContainerLow }];
+    : [{ value: 1, color: theme.colors.surfaceContainerHigh }];
 
   const formattedTotal =
     totalAmount >= 1000
@@ -55,7 +57,7 @@ export function DonutChart({ data, totalAmount }: DonutChartProps) {
           radius={54}
           innerRadius={38}
           innerCircleColor={theme.colors.surfaceContainerLowest}
-          isAnimated
+          isAnimated={hasData}
           animationDuration={700}
           centerLabelComponent={() => (
             <View style={styles.centerLabel}>
@@ -68,19 +70,28 @@ export function DonutChart({ data, totalAmount }: DonutChartProps) {
         />
       </View>
 
-      {/* Legend Breakdown */}
+      {/* Legend Breakdown or Empty Hint */}
       <View style={styles.legend}>
-        {data.slice(0, 4).map((item) => (
-          <View key={item.categoryId || item.name} style={styles.legendRow}>
-            <View style={styles.legendLeft}>
-              <View style={[styles.dot, { backgroundColor: item.color }]} />
-              <Text style={styles.legendName} numberOfLines={1}>
-                {item.name}
-              </Text>
+        {hasData ? (
+          data.slice(0, 4).map((item) => (
+            <View key={item.categoryId || item.name} style={styles.legendRow}>
+              <View style={styles.legendLeft}>
+                <View style={[styles.dot, { backgroundColor: item.color }]} />
+                <Text style={styles.legendName} numberOfLines={1}>
+                  {item.name}
+                </Text>
+              </View>
+              <Text style={styles.legendPct}>{item.percentage}%</Text>
             </View>
-            <Text style={styles.legendPct}>{item.percentage}%</Text>
+          ))
+        ) : (
+          <View style={styles.emptyHintContainer}>
+            <Text style={styles.emptyHintTitle}>No expenses recorded</Text>
+            <Text style={styles.emptyHintSubtitle}>
+              Tap '+' below to add an expense and see category distribution.
+            </Text>
           </View>
-        ))}
+        )}
       </View>
     </Animated.View>
   );
@@ -146,5 +157,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: theme.colors.onSurface,
+  },
+  emptyHintContainer: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  emptyHintTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: theme.colors.onSurface,
+    marginBottom: 4,
+  },
+  emptyHintSubtitle: {
+    fontSize: 11,
+    color: theme.colors.secondary,
+    lineHeight: 15,
   },
 });

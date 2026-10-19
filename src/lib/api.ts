@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase, isSupabaseConfigured } from './supabase';
-import { Transaction, WalletBalance } from '../types/database';
+import { Transaction, WalletBalance, Category } from '../types/database';
 
 export const LOCAL_TRANSACTIONS_STORAGE_KEY = '@putu_local_transactions';
 
@@ -34,57 +34,6 @@ export async function saveLocalTransaction(tx: Transaction): Promise<void> {
   }
 }
 
-export const DEFAULT_WALLET_ID_KEY = '@putu_default_wallet_id';
-export const FALLBACK_WALLET_ID = '00000000-0000-0000-0000-000000000001';
-
-/**
- * Resolves or creates a default wallet to satisfy PostgreSQL NOT NULL constraints
- */
-export async function getOrCreateDefaultWalletId(): Promise<string> {
-  try {
-    // 1. Check local cache first
-    const cachedId = await AsyncStorage.getItem(DEFAULT_WALLET_ID_KEY);
-    if (cachedId) {
-      return cachedId;
-    }
-
-    if (!isSupabaseConfigured) {
-      return FALLBACK_WALLET_ID;
-    }
-
-    // 2. Check if a wallet exists in remote database
-    const { data: existingWallets, error: fetchErr } = await supabase
-      .from('wallets')
-      .select('id')
-      .limit(1);
-
-    if (!fetchErr && existingWallets && existingWallets.length > 0 && existingWallets[0]?.id) {
-      const foundId = String(existingWallets[0].id);
-      await AsyncStorage.setItem(DEFAULT_WALLET_ID_KEY, foundId);
-      return foundId;
-    }
-
-    // 3. Attempt to create a default Cash wallet in the database
-    const { data: createdWallet, error: createErr } = await supabase
-      .from('wallets')
-      .insert([{ name: 'Cash Wallet' }])
-      .select('id')
-      .single();
-
-    if (!createErr && createdWallet?.id) {
-      const createdId = String(createdWallet.id);
-      await AsyncStorage.setItem(DEFAULT_WALLET_ID_KEY, createdId);
-      return createdId;
-    }
-
-    // 4. Return standard fallback UUID
-    return FALLBACK_WALLET_ID;
-  } catch (err) {
-    console.warn('Notice resolving default wallet:', err);
-    return FALLBACK_WALLET_ID;
-  }
-}
-
 export interface CategorySpending {
   categoryId: string;
   name: string;
@@ -97,13 +46,15 @@ export interface MonthlyBudgetMetrics {
   totalBalance: number;
   monthlyIncome: number;
   monthlyExpenses: number;
-  targetBudget: number;
+  targetBudget: number | null;
   spent: number;
-  spentPercentage: number;
-  safeDailyCap: number;
-  leftInBudget: number;
+  spentPercentage: number | null;
+  safeDailyCap: number | null;
+  leftInBudget: number | null;
+  hasBudget: boolean;
   categorySpending: CategorySpending[];
   recentTransactions: Transaction[];
+  wallets: WalletBalance[];
 }
 
 const CATEGORY_COLORS = ['#e40a65', '#6664e4', '#ffd9df', '#dad9df', '#FF2D78', '#10b981'];
@@ -122,10 +73,27 @@ export async function fetchWalletBalances(): Promise<WalletBalance[]> {
 
   if (error) {
     console.warn('Notice fetching wallet_balances:', error.message);
-    // If view not found or empty, return empty array
     return [];
   }
   return data ?? [];
+}
+
+/**
+ * Fetch categories from Supabase categories table
+ */
+export async function fetchCategories(): Promise<Category[]> {
+  if (!isSupabaseConfigured) {
+    return [];
+  }
+  const { data, error } = await supabase
+    .from('categories')
+    .select('id, name, color, icon, type, budget_limit');
+
+  if (error) {
+    console.warn('Error fetching categories from Supabase:', error.message);
+    return [];
+  }
+  return data || [];
 }
 
 /**
@@ -194,13 +162,37 @@ export async function fetchTransactions(): Promise<Transaction[]> {
 }
 
 /**
- * Custom hook to get all home screen financial data and calculations
+ * Hook to fetch wallet balances with automatic caching
  */
-export function useHomeDashboardData() {
-  const balancesQuery = useQuery({
+export function useWalletBalances() {
+  return useQuery<WalletBalance[]>({
     queryKey: ['wallet_balances'],
     queryFn: fetchWalletBalances,
     staleTime: 1000 * 30,
+  });
+}
+
+/**
+ * Hook to fetch transactions with automatic caching
+ */
+export function useTransactions(limit?: number) {
+  return useQuery<Transaction[]>({
+    queryKey: ['transactions', limit],
+    queryFn: fetchTransactions,
+    staleTime: 1000 * 30,
+  });
+}
+
+/**
+ * Custom hook to get all home screen financial data and calculations
+ */
+export function useHomeDashboardData() {
+  const balancesQuery = useWalletBalances();
+
+  const categoriesQuery = useQuery({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+    staleTime: 1000 * 60,
   });
 
   const transactionsQuery = useQuery({
@@ -209,14 +201,15 @@ export function useHomeDashboardData() {
     staleTime: 1000 * 30,
   });
 
-  const isLoading = balancesQuery.isLoading || transactionsQuery.isLoading;
+  const isLoading = balancesQuery.isLoading || transactionsQuery.isLoading || categoriesQuery.isLoading;
   const isError = balancesQuery.isError && transactionsQuery.isError;
   const error = balancesQuery.error || transactionsQuery.error;
 
   const balances = balancesQuery.data || [];
+  const categories = categoriesQuery.data || [];
   const transactions = transactionsQuery.data || [];
 
-  // Compute total balance across all wallets
+  // Compute total balance across all wallets - zero data is 0
   let computedTotalBalance = 0;
   if (balances.length > 0) {
     computedTotalBalance = balances.reduce((acc, curr) => {
@@ -232,7 +225,7 @@ export function useHomeDashboardData() {
 
   let monthlyIncome = 0;
   let monthlyExpenses = 0;
-  const categoryMap = new Map<string, { name: string; amount: number; color?: string }>();
+  const categoryMap = new Map<string, { id: string; name: string; amount: number; color?: string }>();
 
   transactions.forEach((tx) => {
     const txDate = new Date(tx.date || tx.created_at || '');
@@ -242,19 +235,25 @@ export function useHomeDashboardData() {
       txDate.getMonth() === currentMonth;
 
     if (tx.type === 'income') {
-      if (isThisMonth || transactions.length < 5) {
+      if (isThisMonth) {
         monthlyIncome += tx.amount;
       }
     } else {
-      if (isThisMonth || transactions.length < 5) {
+      if (isThisMonth) {
         monthlyExpenses += tx.amount;
       }
 
-      const catName = tx.category?.name || 'Other';
+      // Group by category from category join or find in loaded categories
+      const catId = tx.category_id || tx.category?.id;
+      const matchedCat = categories.find((c) => c.id === catId);
+      const catName = matchedCat?.name || tx.category?.name || 'Uncategorized';
+      const catColor = matchedCat?.color || tx.category?.color;
+
       const prev = categoryMap.get(catName) || {
+        id: catId || catName,
         name: catName,
         amount: 0,
-        color: tx.category?.color,
+        color: catColor,
       };
       prev.amount += tx.amount;
       categoryMap.set(catName, prev);
@@ -264,10 +263,10 @@ export function useHomeDashboardData() {
   // Calculate category percentages
   const categorySpending: CategorySpending[] = [];
   let index = 0;
-  categoryMap.forEach((val, key) => {
+  categoryMap.forEach((val) => {
     const pct = monthlyExpenses > 0 ? Math.round((val.amount / monthlyExpenses) * 100) : 0;
     categorySpending.push({
-      categoryId: key,
+      categoryId: val.id,
       name: val.name,
       amount: val.amount,
       percentage: pct,
@@ -276,41 +275,282 @@ export function useHomeDashboardData() {
     index++;
   });
 
-  // Target budget estimation
-  const targetBudget = monthlyExpenses > 0 ? Math.max(30000, Math.ceil(monthlyExpenses * 1.5 / 1000) * 1000) : 30000;
+  // Sum real budget limits defined on categories table
+  const totalCategoryBudget = categories.reduce((sum, cat) => {
+    const limit = Number(cat.budget_limit) || 0;
+    return sum + limit;
+  }, 0);
+
+  const hasBudget = totalCategoryBudget > 0;
+  const targetBudget = hasBudget ? totalCategoryBudget : null;
   const spent = monthlyExpenses;
-  const spentPercentage = targetBudget > 0 ? Math.min(100, Math.round((spent / targetBudget) * 100)) : 0;
+  const spentPercentage = hasBudget && targetBudget! > 0 ? Math.min(100, Math.round((spent / targetBudget!) * 100)) : null;
+
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const daysRemaining = Math.max(1, daysInMonth - now.getDate());
-  const leftInBudget = Math.max(0, targetBudget - spent);
-  const safeDailyCap = Math.round(leftInBudget / daysRemaining);
+  const leftInBudget = hasBudget && targetBudget !== null ? Math.max(0, targetBudget - spent) : null;
+  const safeDailyCap = hasBudget && leftInBudget !== null ? Math.round(leftInBudget / daysRemaining) : null;
 
   const metrics: MonthlyBudgetMetrics = {
-    totalBalance: computedTotalBalance || (balances.length === 0 && transactions.length === 0 ? 48250 : computedTotalBalance),
-    monthlyIncome: monthlyIncome || (transactions.length === 0 ? 62500 : monthlyIncome),
-    monthlyExpenses: monthlyExpenses || (transactions.length === 0 ? 14250 : monthlyExpenses),
+    totalBalance: computedTotalBalance,
+    monthlyIncome,
+    monthlyExpenses,
     targetBudget,
-    spent: spent || (transactions.length === 0 ? 18400 : spent),
-    spentPercentage: spentPercentage || (transactions.length === 0 ? 61 : spentPercentage),
-    safeDailyCap: safeDailyCap || (transactions.length === 0 ? 1160 : safeDailyCap),
-    leftInBudget: leftInBudget || (transactions.length === 0 ? 11600 : leftInBudget),
-    categorySpending: categorySpending.length > 0 ? categorySpending : [
-      { categoryId: '1', name: 'Food & Dining', amount: 5415, percentage: 38, color: '#e40a65' },
-      { categoryId: '2', name: 'Travel & Fuel', amount: 3420, percentage: 24, color: '#6664e4' },
-      { categoryId: '3', name: 'Movies & Fun', amount: 2850, percentage: 20, color: '#ffd9df' },
-      { categoryId: '4', name: 'Bills & Other', amount: 2565, percentage: 18, color: '#dad9df' },
-    ],
+    spent,
+    spentPercentage,
+    safeDailyCap,
+    leftInBudget,
+    hasBudget,
+    categorySpending,
     recentTransactions: transactions,
+    wallets: balances,
   };
+
+  // Provide dataUpdatedAt timestamp from query
+  const dataUpdatedAt = Math.max(
+    balancesQuery.dataUpdatedAt || 0,
+    transactionsQuery.dataUpdatedAt || 0
+  );
 
   return {
     metrics,
     isLoading,
     isError,
     error,
+    dataUpdatedAt,
     refetch: () => {
       balancesQuery.refetch();
+      categoriesQuery.refetch();
       transactionsQuery.refetch();
     },
   };
+}
+
+export interface AddTransactionInput {
+  wallet_id: string;
+  category_id?: string | null;
+  amount: number;
+  type: 'expense' | 'income';
+  date: string;
+  note?: string;
+  category?: Category | null;
+  wallet?: any;
+}
+
+/**
+ * Mutation to insert a transaction with optimistic updates and query invalidations
+ */
+export function useAddTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: AddTransactionInput) => {
+      // 1. Always save to local AsyncStorage first so user never loses data offline
+      const localTx: Transaction = {
+        id: 'tx-' + Date.now().toString(),
+        amount: input.amount,
+        type: input.type,
+        note: input.note || '',
+        date: input.date,
+        created_at: new Date().toISOString(),
+        wallet_id: input.wallet_id,
+        category_id: input.category_id,
+        category: input.category,
+        wallet: input.wallet,
+      };
+      await saveLocalTransaction(localTx);
+
+      // 2. Insert into Supabase if configured. Do NOT send user_id (Postgres defaults it to auth.uid())
+      if (isSupabaseConfigured) {
+        const payload: any = {
+          wallet_id: input.wallet_id,
+          amount: input.amount,
+          type: input.type,
+          date: input.date,
+        };
+        if (input.category_id) {
+          payload.category_id = input.category_id;
+        }
+        if (input.note && input.note.trim()) {
+          payload.note = input.note.trim();
+        }
+
+        const { data, error } = await supabase
+          .from('transactions')
+          .insert([payload])
+          .select(`
+            id,
+            amount,
+            type,
+            note,
+            date,
+            created_at,
+            wallet_id,
+            category_id
+          `)
+          .single();
+
+        if (error) {
+          throw error;
+        }
+        return data;
+      }
+      return localTx;
+    },
+    onMutate: async (newTxInput) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['transactions'] });
+      await queryClient.cancelQueries({ queryKey: ['wallet_balances'] });
+
+      // Snapshot previous transactions
+      const previousTransactions = queryClient.getQueryData<Transaction[]>(['transactions']) || [];
+
+      // Optimistic transaction
+      const optimisticTx: Transaction = {
+        id: 'temp-' + Date.now().toString(),
+        amount: newTxInput.amount,
+        type: newTxInput.type,
+        note: newTxInput.note || '',
+        date: newTxInput.date,
+        created_at: new Date().toISOString(),
+        wallet_id: newTxInput.wallet_id,
+        category_id: newTxInput.category_id,
+        category: newTxInput.category,
+        wallet: newTxInput.wallet,
+      };
+
+      queryClient.setQueryData<Transaction[]>(['transactions'], (old = []) => [optimisticTx, ...old]);
+
+      return { previousTransactions };
+    },
+    onError: async (_err, _newTx, context) => {
+      // Roll back optimistic cache to previous transactions
+      if (context?.previousTransactions) {
+        queryClient.setQueryData(['transactions'], context.previousTransactions);
+      }
+    },
+    onSettled: (_data, error) => {
+      // Invalidate queries so Home dashboard updates with server truth if successful
+      if (!error) {
+        queryClient.invalidateQueries({ queryKey: ['transactions'] });
+        queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      }
+    },
+  });
+}
+
+export interface CreateWalletInput {
+  name: string;
+  opening_balance?: number;
+  color?: string;
+  icon?: string;
+}
+
+/**
+ * Mutation to create a wallet without user_id (database defaults user_id to auth.uid())
+ */
+export function useCreateWallet() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateWalletInput) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const payload: any = {
+        name: input.name.trim(),
+        opening_balance: input.opening_balance ?? 0,
+        color: input.color || '#4c4aca',
+        icon: input.icon || 'account_balance',
+      };
+
+      const { data, error } = await supabase
+        .from('wallets')
+        .insert([payload])
+        .select('*')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+}
+
+export interface UpdateWalletInput {
+  id: string;
+  name?: string;
+  color?: string;
+  icon?: string;
+}
+
+/**
+ * Mutation to update an existing wallet's name, color, or icon
+ */
+export function useUpdateWallet() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdateWalletInput) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const updateData: any = {};
+      if (input.name !== undefined) updateData.name = input.name.trim();
+      if (input.color !== undefined) updateData.color = input.color;
+      if (input.icon !== undefined) updateData.icon = input.icon;
+
+      const { data, error } = await supabase
+        .from('wallets')
+        .update(updateData)
+        .eq('id', input.id)
+        .select('*')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+}
+
+/**
+ * Mutation to delete a wallet (cascades transactions in DB)
+ */
+export function useDeleteWallet() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (walletId: string) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const { error } = await supabase
+        .from('wallets')
+        .delete()
+        .eq('id', walletId);
+
+      if (error) {
+        throw error;
+      }
+      return walletId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
 }

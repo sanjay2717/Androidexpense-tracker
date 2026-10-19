@@ -40,7 +40,7 @@ export function CustomTabBar({ state, descriptors, navigation }: CustomTabBarPro
 
   const handleAddPress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/modal');
+    router.push('/add' as any);
   };
 
   // Find routes

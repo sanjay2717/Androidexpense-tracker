@@ -223,3 +223,103 @@ export function CategoryIcon({ name, color = '#FF2D78', size = 20 }: { name?: st
     </Svg>
   );
 }
+
+export function BankIcon({ size = 22, color = '#ffffff' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v4M12 14v4M16 14v4"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function CashIcon({ size = 22, color = '#ffffff' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="2" y="6" width="20" height="12" rx="2" stroke={color} strokeWidth={2} />
+      <Circle cx="12" cy="12" r="2.5" stroke={color} strokeWidth={2} />
+      <Path d="M6 12h.01M18 12h.01" stroke={color} strokeWidth={2.5} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function CardIcon({ size = 22, color = '#ffffff' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="2" y="5" width="20" height="14" rx="2.5" stroke={color} strokeWidth={2} />
+      <Path d="M2 10h20" stroke={color} strokeWidth={2} />
+      <Path d="M6 15h4" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function WalletIconByType({ iconName, size = 22, color = '#ffffff' }: { iconName?: string; size?: number; color?: string }) {
+  const norm = (iconName || '').toLowerCase();
+  if (norm.includes('cash') || norm.includes('payment') || norm.includes('bill')) {
+    return <CashIcon size={size} color={color} />;
+  }
+  if (norm.includes('card') || norm.includes('credit') || norm.includes('debit') || norm.includes('upi')) {
+    return <CardIcon size={size} color={color} />;
+  }
+  return <BankIcon size={size} color={color} />;
+}
+
+export function MinusIcon({ size = 20, color = '#5e5e5e' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 12h14" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function CloseIcon({ size = 20, color = '#1a1b1f' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M18 6 6 18M6 6l12 12" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function DotsVerticalIcon({ size = 20, color = '#ffffff' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="5" r="1.75" fill={color} />
+      <Circle cx="12" cy="12" r="1.75" fill={color} />
+      <Circle cx="12" cy="19" r="1.75" fill={color} />
+    </Svg>
+  );
+}
+
+export function PencilIcon({ size = 18, color = '#1a1b1f' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function TrashIcon({ size = 18, color = '#ba1a1a' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+

@@ -98,14 +98,10 @@ function RootLayoutContent() {
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
-          name="modal"
+          name="add"
           options={{
             presentation: 'modal',
-            headerShown: true,
-            title: 'Add Transaction',
-            headerStyle: { backgroundColor: theme.colors.surfaceContainerLowest },
-            headerTintColor: theme.colors.onSurface,
-            headerTitleStyle: { fontWeight: '700' },
+            headerShown: false,
           }}
         />
         <Stack.Screen
