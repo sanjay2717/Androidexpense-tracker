@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%" height="100%">
+  <!-- Coral Bird on Head -->
+  <g id="bird">
+    <path d="M93 17 C93 13 98 11 104 12 C108 13 111 16 110 19 C109 22 104 23 99 23 C95 23 93 20 93 17 Z" fill="#FF7A59"/>
+    <path d="M110 15.5 L116 17 L110 18.5 Z" fill="#FF7A59"/>
+    <path d="M96 17 C98 15 103 15 105 17 C103 19 98 19 96 17 Z" fill="#FFFFFF"/>
+    <path d="M98 23 L97 26.5 M102 23 L103 26.5" stroke="#FF7A59" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+
+  <!-- Hair Topknot -->
+  <ellipse cx="100" cy="27" rx="5" ry="3.5" fill="#FF3D7F"/>
+
+  <!-- Solid Hair Silhouette -->
+  <path d="M85 36 C85 27 115 27 115 36 C115 42 112 47 110 50 C106 45 94 45 90 50 C88 47 85 42 85 36 Z" fill="#FF3D7F"/>
+
+  <!-- Blank Editorial Face (No eyes, mouth, cheeks) -->
+  <path d="M88 38 C88 33 112 33 112 38 C112 47 108 55 100 56 C92 55 88 47 88 38 Z" fill="#FFD3E1"/>
+
+  <!-- Simple Slender Neck -->
+  <polygon points="96,54 104,54 105,65 95,65" fill="#FFD3E1"/>
+
+  <!-- White Collar Accent -->
+  <polygon points="92,65 108,65 104,77 96,77" fill="#FFFFFF"/>
+
+  <!-- Chunky Geometric Torso / Hot Pink Sweater -->
+  <polygon points="76,73 92,65 108,65 124,73 121,118 79,118" fill="#FF3D7F"/>
+
+  <!-- White Center Fold Strip -->
+  <rect x="98.5" y="77" width="3" height="41" fill="#FFFFFF"/>
+
+  <!-- Left Arm (Long simple limb resting on knee) -->
+  <polygon points="76,73 60,92 50,108 58,114 68,100 79,85" fill="#FF3D7F"/>
+  <!-- Left Hand (Lotus mudra pose) -->
+  <path d="M47 103 C44 100 47 94 52 95 C55 96 55 104 50 106 Z" fill="#FFD3E1"/>
+  <path d="M50 98 C49 95 53 94 54 96 Z" fill="#FFD3E1"/>
+
+  <!-- Right Arm (Long simple limb resting on knee) -->
+  <polygon points="124,73 140,92 150,108 142,114 132,100 121,85" fill="#FF3D7F"/>
+  <!-- Right Hand (Lotus mudra pose) -->
+  <path d="M153 103 C156 100 153 94 148 95 C145 96 145 104 150 106 Z" fill="#FFD3E1"/>
+  <path d="M150 98 C151 95 147 94 146 96 Z" fill="#FFD3E1"/>
+
+  <!-- Crossed Legs (Lotus Pose - Chunky geometric panels) -->
+  <!-- Left Leg / Fold -->
+  <path d="M79,116 L54,127 L66,145 L106,140 L97,128 L79,128 Z" fill="#FFFFFF"/>
+  <!-- Right Leg / Fold -->
+  <path d="M121,116 L146,127 L134,145 L94,140 L103,128 L121,128 Z" fill="#FFD3E1"/>
+
+  <!-- Crossed Foot / Cuff Details in Hot Pink -->
+  <polygon points="66,141 74,147 85,145 78,139" fill="#FF3D7F"/>
+  <polygon points="134,141 126,147 115,145 122,139" fill="#FF3D7F"/>
+  <polygon points="94,136 106,136 103,148 97,148" fill="#FF3D7F"/>
+</svg>

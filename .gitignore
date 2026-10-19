@@ -4,13 +4,19 @@
 *.env
 *.env.*
 *.local
-!.env.example
+.env.example
 secrets.json
 service-account*.json
 credentials*.json
+google-services.json
+GoogleService-Info.plist
 *.pem
 *.key
 *.cert
+*.jks
+*.keystore
+*.p8
+*.p12
 
 # Expo and React Native
 .expo/

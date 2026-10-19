@@ -20,6 +20,11 @@ import Animated, {
   withDelay,
   Easing,
 } from 'react-native-reanimated';
+import {
+  AvatarMeditate,
+  AvatarPeekLeft,
+  AvatarPeekRight,
+} from './AvatarIllustrations';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -216,93 +221,14 @@ export function LoadingScreen({ isReady, onFinish }: LoadingScreenProps) {
       <View style={styles.topAmbientGlow} />
       <View style={styles.bottomAmbientGlow} />
 
-      {/* LEFT PEAKING CHARACTER */}
+      {/* LEFT PEAKING CHARACTER (Cropped by left screen edge) */}
       <Animated.View style={[styles.leftCharacterContainer, animatedLeftPeekStyle]}>
-        <Svg width={46} height={70} viewBox="0 0 54 80" fill="none">
-          <Path
-            d="M-6 80 C6 74 14 62 14 42 C14 26 8 16 -6 12"
-            fill="#FAF8F5"
-            stroke="#1F1D24"
-            strokeLinecap="round"
-            strokeWidth={2.5}
-          />
-          <Path
-            d="M-4 16 C8 16 26 23 26 42 C26 59 10 68 -4 68"
-            fill="#FAF8F5"
-            stroke="#1F1D24"
-            strokeLinecap="round"
-            strokeWidth={2.6}
-          />
-          <Ellipse cx={14} cy={49} rx={3.5} ry={2.2} fill="#FF2D78" opacity={0.65} />
-          <Circle cx={15} cy={40} r={3.2} fill="#1F1D24" />
-          <Circle cx={16.2} cy={38.8} r={1.1} fill="#FFFFFF" />
-          <Path
-            d="M12 34 C14 32.5 18 33 20 35"
-            stroke="#1F1D24"
-            strokeLinecap="round"
-            strokeWidth={1.8}
-          />
-          <Path
-            d="M16 54 C19 55 21 53 22 52"
-            stroke="#1F1D24"
-            strokeLinecap="round"
-            strokeWidth={1.8}
-          />
-          <Path
-            d="M16 19 C18 12 24 10 28 13"
-            stroke="#FF2D78"
-            strokeLinecap="round"
-            strokeWidth={2.2}
-          />
-        </Svg>
+        <AvatarPeekLeft width={54} height={72} />
       </Animated.View>
 
-      {/* RIGHT PEAKING CHARACTER */}
+      {/* RIGHT PEAKING CHARACTER (Cropped by right screen edge) */}
       <Animated.View style={[styles.rightCharacterContainer, animatedRightPeekStyle]}>
-        <Svg width={46} height={70} viewBox="0 0 54 80" fill="none">
-          <Path
-            d="M60 80 C48 74 40 62 40 42 C40 26 46 16 60 12"
-            fill="#FAF8F5"
-            stroke="#1F1D24"
-            strokeLinecap="round"
-            strokeWidth={2.5}
-          />
-          <Path
-            d="M58 16 C46 16 28 23 28 42 C28 59 44 68 58 68"
-            fill="#FAF8F5"
-            stroke="#1F1D24"
-            strokeLinecap="round"
-            strokeWidth={2.6}
-          />
-          <Circle
-            cx={39}
-            cy={41}
-            r={5.5}
-            fill="rgba(255,45,120,0.08)"
-            stroke="#1F1D24"
-            strokeWidth={1.8}
-          />
-          <Path d="M44.5 41 L52 41" stroke="#1F1D24" strokeWidth={1.6} />
-          <Path
-            d="M36.5 41 C37.5 39 40.5 39 41.5 41"
-            stroke="#1F1D24"
-            strokeLinecap="round"
-            strokeWidth={2}
-          />
-          <Ellipse cx={38} cy={49} rx={3.5} ry={2.2} fill="#FF2D78" opacity={0.65} />
-          <Path
-            d="M35 54 C37 56 40 56 42 54"
-            stroke="#1F1D24"
-            strokeLinecap="round"
-            strokeWidth={1.8}
-          />
-          <Path
-            d="M36 18 C33 13 29 14 27 16"
-            stroke="#FF2D78"
-            strokeLinecap="round"
-            strokeWidth={2.2}
-          />
-        </Svg>
+        <AvatarPeekRight width={54} height={72} />
       </Animated.View>
 
       {/* UPPER RIGHT ANNOTATION */}
@@ -335,115 +261,12 @@ export function LoadingScreen({ isReady, onFinish }: LoadingScreenProps) {
 
       {/* MAIN CONTENT COLUMN */}
       <View style={[styles.contentColumn, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 20 }]}>
-        {/* TOP SECTION: Zen Meditating Character */}
+        {/* TOP SECTION: Zen Meditating Character (Lotus pose with coral bird on head) */}
         <Animated.View style={[styles.zenWrapper, animatedZenStyle]}>
           {/* Ambient Glow behind Character */}
           <View style={styles.zenHalo} />
 
-          {/* Floating Sparkle / Coin above Palms */}
-          <Animated.View style={[styles.sparkleContainer, animatedSparkStyle]}>
-            <Svg width={28} height={28} viewBox="-14 -14 28 28" fill="none">
-              <Circle
-                cx={0}
-                cy={0}
-                r={7}
-                fill="#FF2D78"
-                fillOpacity={0.15}
-                stroke="#FF2D78"
-                strokeWidth={1.5}
-              />
-              <Circle cx={0} cy={0} r={3} fill="#FF2D78" />
-              <Path
-                d="M0 -10 L0 -7 M0 7 L0 10 M-10 0 L-7 0 M7 0 L10 0"
-                stroke="#FF2D78"
-                strokeLinecap="round"
-                strokeWidth={1.6}
-              />
-              <Path
-                d="M-1.8 -2.5 L1.8 -2.5 M-1.8 -0.8 L1.5 -0.8 M-1.2 -2.5 C0.5 -2.5 1.5 -1.2 0.8 0.4 L-1.4 0.4 L1.8 3.2"
-                stroke="#FAF8F5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={0.9}
-              />
-            </Svg>
-          </Animated.View>
-
-          {/* 2D Monoline Character Body */}
-          <Svg width={92} height={92} viewBox="0 0 96 96" fill="none">
-            <Path
-              d="M48 27 C59 27 67 35.5 67 46.5 C67 58 58 66 48 66 C38 66 29 58 29 46.5 C29 35.5 37 27 48 27 Z"
-              fill="#FAF8F5"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-            />
-            <Path
-              d="M48 27 C49 19 55 17 58 20"
-              stroke="#FF2D78"
-              strokeLinecap="round"
-              strokeWidth={2.4}
-            />
-            <Path
-              d="M47 27 C44 21 38 22 36 24"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeWidth={2}
-            />
-            <Path
-              d="M37.5 45 C39.5 48 42.5 48 44.5 45"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeWidth={2}
-            />
-            <Path
-              d="M51.5 45 C53.5 48 56.5 48 58.5 45"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeWidth={2}
-            />
-            <Ellipse cx={36} cy={51} rx={4} ry={2.4} fill="#FF2D78" opacity={0.65} />
-            <Ellipse cx={60} cy={51} rx={4} ry={2.4} fill="#FF2D78" opacity={0.65} />
-            <Path
-              d="M45 54 C47 56 49 56 51 54"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeWidth={1.8}
-            />
-            <Path
-              d="M32 64 C26 67 22 74 22 83 C28 85 36 86 48 86 C60 86 68 85 74 83 C74 74 70 67 64 64"
-              fill="#FAF8F5"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2.5}
-            />
-            <Path
-              d="M42 66 C45 68 51 68 54 66"
-              stroke="#FF2D78"
-              strokeLinecap="round"
-              strokeWidth={2.2}
-            />
-            <Path
-              d="M38 74 C41 77 46 78 48 78 C50 78 55 77 58 74"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeWidth={2}
-            />
-            <Path
-              d="M43 72 C45 74 47 75 48 75 C49 75 51 74 53 72"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeWidth={1.6}
-            />
-            <Path
-              d="M26 83 C34 81 62 81 70 83"
-              stroke="#1F1D24"
-              strokeLinecap="round"
-              strokeWidth={2.2}
-            />
-          </Svg>
+          <AvatarMeditate width={116} height={116} />
         </Animated.View>
 
         {/* CENTER FOCAL: Putu Title + Underline + Active Sketching Pencil */}
