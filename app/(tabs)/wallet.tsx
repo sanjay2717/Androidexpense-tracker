@@ -171,11 +171,23 @@ export default function WalletScreen() {
     return wallets.reduce((acc: number, w: WalletBalance) => acc + (Number(w.balance) || 0), 0);
   }, [wallets]);
 
-  // Filtered recent activity for active wallet
+  // Filtered recent activity for active wallet, sorted newest on top
   const walletTransactions = useMemo(() => {
     if (!activeWallet) return [];
     const id = activeWallet.id || (activeWallet as any).wallet_id;
-    return transactions.filter((t: Transaction) => t.wallet_id === id);
+    return transactions
+      .filter((t: Transaction) => t.wallet_id === id)
+      .sort((a, b) => {
+        const dateA = new Date(a.date || 0).getTime();
+        const dateB = new Date(b.date || 0).getTime();
+        if (dateB !== dateA) return dateB - dateA;
+
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        if (timeB !== timeA) return timeB - timeA;
+
+        return String(b.id).localeCompare(String(a.id));
+      });
   }, [transactions, activeWallet]);
 
   // Modal states

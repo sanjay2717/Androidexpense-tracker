@@ -91,7 +91,8 @@ export async function fetchTransactions(): Promise<Transaction[]> {
         wallets (id, name)
       `)
       .order('date', { ascending: false, nullsFirst: false })
-      .limit(50);
+      .order('created_at', { ascending: false, nullsFirst: false })
+      .limit(100);
 
     if (error) {
       console.warn('Error fetching transactions from Supabase:', error.message);
@@ -111,6 +112,19 @@ export async function fetchTransactions(): Promise<Transaction[]> {
       category: Array.isArray(t.categories) ? t.categories[0] : t.categories,
       wallet: Array.isArray(t.wallets) ? t.wallets[0] : t.wallets,
     }));
+
+    // Ensure newest transactions are always placed on top (latest first)
+    cloudTransactions.sort((a, b) => {
+      const dateA = new Date(a.date || 0).getTime();
+      const dateB = new Date(b.date || 0).getTime();
+      if (dateB !== dateA) return dateB - dateA;
+
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      if (timeB !== timeA) return timeB - timeA;
+
+      return String(b.id).localeCompare(String(a.id));
+    });
 
     return cloudTransactions;
   } catch (err) {
