@@ -530,6 +530,58 @@ export function LockIcon({ size = 20, color = theme.colors.amber }: IconProps) {
   );
 }
 
+export function ChevronLeftIcon({ size = 18, color = theme.colors.secondary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="m15 18-6-6 6-6" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function NorthEastIcon({ size = 18, color = theme.colors.emeraldDark }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M7 17 17 7M7 7h10v10" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function SouthEastIcon({ size = 18, color = theme.colors.primaryDark }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M7 7l10 10M17 7v10H7" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function LightbulbIcon({ size = 18, color = theme.colors.amber }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4.95 11.95c.7.7 1.25 1.57 1.55 2.55h6.8c.3-.98.85-1.85 1.55-2.55A7 7 0 0 0 12 2Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function ShareIcon({ size = 20, color = theme.colors.onSurface }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function InfoIcon({ size = 20, color = theme.colors.secondary }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
