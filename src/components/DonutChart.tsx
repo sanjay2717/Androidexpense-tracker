@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useCallback, useRef, memo } from 'react';
+import React, { useEffect, useMemo, memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { PieChart } from 'react-native-gifted-charts';
+import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -17,81 +17,107 @@ interface DonutChartProps {
 }
 
 export const DonutChart = memo(function DonutChart({ data, totalAmount }: DonutChartProps) {
-  const scale = useSharedValue(0.85);
+  const scale = useSharedValue(0.88);
   const opacity = useSharedValue(0);
-  const hasAnimatedOnceRef = useRef(false);
+
+  const hasData = data.length > 0 && totalAmount > 0;
 
   useEffect(() => {
     scale.value = withDelay(
-      150,
-      withTiming(1, { duration: 500, easing: Easing.out(Easing.back(1.2)) })
+      80,
+      withTiming(1, { duration: 450, easing: Easing.out(Easing.back(1.15)) })
     );
-    opacity.value = withDelay(150, withTiming(1, { duration: 400 }));
-  }, []);
+    opacity.value = withDelay(80, withTiming(1, { duration: 350 }));
+  }, [totalAmount, data.length]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
   }));
 
-  const hasData = data.length > 0 && totalAmount > 0;
+  const size = 116;
+  const center = size / 2; // 58
+  const strokeWidth = 16;
+  const radius = 46;
+  const circumference = 2 * Math.PI * radius; // ~289.03
 
-  // Format chart data for gifted-charts - memoize to prevent internal GiftedCharts animation thrash
-  const pieData = useMemo(() => {
-    if (!hasData) {
-      return [{ value: 1, color: theme.colors.surfaceContainerHigh }];
-    }
-    return data.map((item) => ({
-      value: Math.max(1, item.amount),
-      color: item.color,
-    }));
-  }, [hasData, data]);
+  // Precompute stroke dash arrays and offsets
+  const slices = useMemo(() => {
+    if (!hasData) return [];
+
+    const active = data.filter((d) => d.amount > 0);
+    if (active.length === 0) return [];
+
+    let accumulatedPct = 0;
+    return active.slice(0, 5).map((item, idx) => {
+      const share = item.amount / totalAmount;
+      const sliceLength = share * circumference;
+      const offset = -(accumulatedPct * circumference);
+      accumulatedPct += share;
+
+      return {
+        key: item.categoryId || `${item.name}-${idx}`,
+        color: item.color || theme.colors.primary,
+        dashArray: `${Math.max(1, sliceLength)} ${circumference}`,
+        dashOffset: offset,
+      };
+    });
+  }, [hasData, data, totalAmount, circumference]);
 
   const formattedTotal = useMemo(() => {
-    return totalAmount >= 1000
+    if (totalAmount <= 0) return '₹0';
+    return totalAmount >= 10000
       ? `₹${(totalAmount / 1000).toFixed(1)}k`
-      : `₹${totalAmount}`;
+      : `₹${totalAmount.toLocaleString('en-IN')}`;
   }, [totalAmount]);
-
-  const renderCenterLabel = useCallback(
-    () => (
-      <View style={styles.centerLabel}>
-        <Text style={styles.centerSub}>TOTAL</Text>
-        <Text style={styles.centerMain} numberOfLines={1}>
-          {formattedTotal}
-        </Text>
-      </View>
-    ),
-    [formattedTotal]
-  );
-
-  const shouldAnimate = hasData && !hasAnimatedOnceRef.current;
-  if (hasData) {
-    hasAnimatedOnceRef.current = true;
-  }
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       <View style={styles.chartWrapper}>
-        <PieChart
-          donut
-          data={pieData}
-          radius={54}
-          innerRadius={38}
-          innerCircleColor={theme.colors.surfaceContainerLowest}
-          isAnimated={shouldAnimate}
-          animationDuration={600}
-          centerLabelComponent={renderCenterLabel}
-        />
+        <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={styles.svgRotate}>
+          {/* Base background ring */}
+          <Circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="transparent"
+            stroke={theme.colors.surfaceContainerLow}
+            strokeWidth={strokeWidth}
+          />
+
+          {/* Category Slices */}
+          {slices.map((slice) => (
+            <Circle
+              key={slice.key}
+              cx={center}
+              cy={center}
+              r={radius}
+              fill="transparent"
+              stroke={slice.color}
+              strokeWidth={strokeWidth}
+              strokeDasharray={slice.dashArray}
+              strokeDashoffset={slice.dashOffset}
+              strokeLinecap="round"
+            />
+          ))}
+        </Svg>
+
+        {/* Center Total Callout */}
+        <View style={styles.centerLabel}>
+          <Text style={styles.centerSub}>TOTAL</Text>
+          <Text style={styles.centerMain} numberOfLines={1}>
+            {formattedTotal}
+          </Text>
+        </View>
       </View>
 
       {/* Legend Breakdown or Empty Hint */}
       <View style={styles.legend}>
         {hasData ? (
-          data.slice(0, 4).map((item) => (
-            <View key={item.categoryId || item.name} style={styles.legendRow}>
+          data.slice(0, 4).map((item, idx) => (
+            <View key={item.categoryId || `${item.name}-${idx}`} style={styles.legendRow}>
               <View style={styles.legendLeft}>
-                <View style={[styles.dot, { backgroundColor: item.color }]} />
+                <View style={[styles.dot, { backgroundColor: item.color || theme.colors.primary }]} />
                 <Text style={styles.legendName} numberOfLines={1}>
                   {item.name}
                 </Text>
@@ -124,8 +150,13 @@ const styles = StyleSheet.create({
     height: 116,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
+  },
+  svgRotate: {
+    transform: [{ rotate: '-90deg' }],
   },
   centerLabel: {
+    position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
   },
