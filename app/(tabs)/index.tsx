@@ -379,11 +379,18 @@ export default function HomeScreen() {
                       />
                     </View>
                     <View style={styles.txTextCol}>
-                      <Text style={styles.txTitle} numberOfLines={1}>
-                        {item.note || categoryName}
-                      </Text>
+                      <View style={styles.txTitleRow}>
+                        <Text style={styles.txTitle} numberOfLines={1}>
+                          {item.note || categoryName}
+                        </Text>
+                        {item.is_adjustment ? (
+                          <View style={styles.adjustmentBadge}>
+                            <Text style={styles.adjustmentBadgeText}>Adjustment</Text>
+                          </View>
+                        ) : null}
+                      </View>
                       <Text style={styles.txMeta} numberOfLines={1}>
-                        {categoryName} · {isIncome ? 'Income' : 'Expense'}
+                        {item.is_adjustment ? 'Adjustment' : categoryName} · {isIncome ? 'Income' : 'Expense'}
                       </Text>
                     </View>
                   </View>
@@ -492,7 +499,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: theme.colors.primaryContainer,
     borderWidth: 2,
-    borderColor: '#ffffff',
+    borderColor: theme.colors.surfaceContainerLowest,
   },
   headerTextCol: {
     justifyContent: 'center',
@@ -522,7 +529,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   verifiedCheck: {
-    color: '#ffffff',
+    color: theme.colors.surfaceContainerLowest,
     fontSize: 10,
     fontWeight: '900',
   },
@@ -541,7 +548,7 @@ const styles = StyleSheet.create({
     ...theme.shadows.card,
   },
   errorBanner: {
-    backgroundColor: '#fff1f2',
+    backgroundColor: theme.colors.roseLight,
     padding: 12,
     borderRadius: 14,
     flexDirection: 'row',
@@ -561,7 +568,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   retryBtnText: {
-    color: '#ffffff',
+    color: theme.colors.surfaceContainerLowest,
     fontSize: 12,
     fontWeight: '700',
   },
@@ -849,11 +856,28 @@ const styles = StyleSheet.create({
   txTextCol: {
     flex: 1,
   },
+  txTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
   txTitle: {
     fontSize: 15,
     fontWeight: '600',
     color: theme.colors.onSurface,
-    marginBottom: 2,
+  },
+  adjustmentBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: theme.radii.pill,
+    backgroundColor: theme.colors.surfaceContainerHigh,
+  },
+  adjustmentBadgeText: {
+    ...theme.typography.caption,
+    fontSize: 10,
+    fontWeight: '600',
+    color: theme.colors.tertiary,
   },
   txMeta: {
     fontSize: 12,
@@ -904,13 +928,13 @@ const styles = StyleSheet.create({
   reloadButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.surfaceContainerLowest,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 45, 120, 0.15)',
-    shadowColor: '#1F1D24',
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -928,7 +952,7 @@ const styles = StyleSheet.create({
   reloadIconText: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FF2D78',
+    color: theme.colors.primary,
     marginTop: -2,
   },
   reloadTextCol: {
@@ -937,18 +961,18 @@ const styles = StyleSheet.create({
   reloadTitle: {
     fontSize: 14,
     fontFamily: 'Inter_700Bold',
-    color: '#1F1D24',
+    color: theme.colors.onSurface,
   },
   reloadSubtitle: {
     fontSize: 12,
     fontFamily: 'Inter_400Regular',
-    color: '#76747E',
+    color: theme.colors.secondary,
     marginTop: 2,
   },
   emptyWalletCard: {
-    backgroundColor: '#fff1f2',
+    backgroundColor: theme.colors.roseLight,
     borderWidth: 1,
-    borderColor: '#fecdd3',
+    borderColor: theme.colors.primaryFixed,
     borderRadius: theme.radii.card,
     padding: theme.spacing.md,
     marginBottom: 12,
@@ -956,12 +980,12 @@ const styles = StyleSheet.create({
   emptyWalletTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#be123c',
+    color: theme.colors.primaryDark,
     marginBottom: 4,
   },
   emptyWalletSubtitle: {
     fontSize: 12,
-    color: '#9f1239',
+    color: theme.colors.primaryDark,
     lineHeight: 16,
   },
   noBudgetPromptBox: {

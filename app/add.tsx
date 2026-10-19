@@ -63,6 +63,7 @@ export default function AddTransactionScreen() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   const [showWalletPicker, setShowWalletPicker] = useState<boolean>(false);
+  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
 
   // Feedback & UI State
   const [inlineError, setInlineError] = useState<string | null>(null);
@@ -89,6 +90,7 @@ export default function AddTransactionScreen() {
   useEffect(() => {
     async function loadInitialData() {
       try {
+        setIsLoadingData(true);
         const [cats, wals] = await Promise.all([
           fetchCategories(),
           fetchWalletBalances(),
@@ -118,6 +120,8 @@ export default function AddTransactionScreen() {
         }
       } catch (err) {
         console.warn('Error loading initial data in Add screen:', err);
+      } finally {
+        setIsLoadingData(false);
       }
     }
     loadInitialData();
@@ -224,6 +228,16 @@ export default function AddTransactionScreen() {
     sheetTranslateY.set(
       withTiming(700, { duration: 250 }, () => {
         runOnJS(router.back)();
+      })
+    );
+    sheetOpacity.set(withTiming(0, { duration: 200 }));
+  };
+
+  const handleGoToWallets = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    sheetTranslateY.set(
+      withTiming(700, { duration: 250 }, () => {
+        runOnJS(router.replace)('/(tabs)/wallet');
       })
     );
     sheetOpacity.set(withTiming(0, { duration: 200 }));
@@ -347,12 +361,33 @@ export default function AddTransactionScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView
-          style={styles.scrollArea}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-        >
+        {!isLoadingData && wallets.length === 0 ? (
+          <View style={styles.emptyWalletContainer}>
+            <View style={styles.emptyWalletIconCircle}>
+              <WalletIcon size={36} color={theme.colors.primaryDark} />
+            </View>
+            <Text style={styles.emptyWalletTitle}>No Wallets Found</Text>
+            <Text style={styles.emptyWalletSubtitle}>
+              You need at least one wallet to record transactions. Create a wallet first to start tracking your finances.
+            </Text>
+            <TouchableOpacity
+              style={styles.goToWalletsBtn}
+              onPress={handleGoToWallets}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Go to Wallets"
+            >
+              <Text style={styles.goToWalletsBtnText}>Go to Wallets</Text>
+              <ChevronRightIcon size={18} color={theme.colors.surfaceContainerLowest} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.scrollArea}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
           {/* Segmented Type Control */}
           <View style={styles.segmentedContainer}>
             <Animated.View style={[styles.segmentedIndicator, animatedIndicatorStyle]} />
@@ -441,7 +476,7 @@ export default function AddTransactionScreen() {
                     <CategoryIcon
                       name={cat.name}
                       size={18}
-                      color={isSelected ? '#ffffff' : theme.colors.secondary}
+                      color={isSelected ? theme.colors.surfaceContainerLowest : theme.colors.secondary}
                     />
                     <Text
                       style={[
@@ -519,7 +554,7 @@ export default function AddTransactionScreen() {
                 <TextInput
                   style={styles.noteInput}
                   placeholder="Add a note..."
-                  placeholderTextColor="#a1a1aa"
+                  placeholderTextColor={theme.colors.secondary}
                   value={note}
                   onChangeText={setNote}
                   maxLength={60}
@@ -565,6 +600,7 @@ export default function AddTransactionScreen() {
             </Text>
           </TouchableOpacity>
         </ScrollView>
+        )}
 
         {/* Success Overlay Animation */}
         {showSuccess && (
@@ -666,7 +702,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     maxHeight: '92%',
     overflow: 'hidden',
-    shadowColor: '#000000',
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: -8 },
     shadowOpacity: 0.12,
     shadowRadius: 24,
@@ -732,7 +768,7 @@ const styles = StyleSheet.create({
     width: '47%',
     backgroundColor: theme.colors.surfaceContainerLowest,
     borderRadius: 11,
-    shadowColor: '#000000',
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
@@ -794,9 +830,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   errorNoticeBox: {
-    backgroundColor: '#fff1f2',
+    backgroundColor: theme.colors.roseLight,
     borderWidth: 1,
-    borderColor: '#fecdd3',
+    borderColor: theme.colors.primaryFixed,
     borderRadius: 12,
     paddingVertical: 8,
     paddingHorizontal: 12,
@@ -804,7 +840,7 @@ const styles = StyleSheet.create({
   },
   errorNoticeText: {
     fontSize: 13,
-    color: '#be123c',
+    color: theme.colors.primaryDark,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -952,12 +988,12 @@ const styles = StyleSheet.create({
   saveCheckIcon: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#ffffff',
+    color: theme.colors.surfaceContainerLowest,
   },
   saveButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ffffff',
+    color: theme.colors.surfaceContainerLowest,
     letterSpacing: -0.1,
   },
   successOverlay: {
@@ -969,7 +1005,7 @@ const styles = StyleSheet.create({
   },
   successCard: {
     alignItems: 'center',
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.surfaceContainerLowest,
     paddingVertical: 24,
     paddingHorizontal: 32,
     borderRadius: 24,
@@ -983,7 +1019,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#fff1f2',
+    backgroundColor: theme.colors.roseLight,
     borderWidth: 2,
     borderColor: theme.colors.primary,
     alignItems: 'center',
@@ -1012,7 +1048,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   walletPickerSheet: {
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.surfaceContainerLowest,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
@@ -1059,7 +1095,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surfaceContainerLow,
   },
   walletOptionRowSelected: {
-    backgroundColor: '#fff1f2',
+    backgroundColor: theme.colors.roseLight,
     borderColor: theme.colors.primary,
     borderWidth: 1,
   },
@@ -1105,5 +1141,50 @@ const styles = StyleSheet.create({
     color: theme.colors.secondary,
     textAlign: 'center',
     lineHeight: 18,
+  },
+  emptyWalletContainer: {
+    paddingVertical: 36,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyWalletIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: theme.colors.primaryFixed,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyWalletTitle: {
+    ...theme.typography.title2,
+    color: theme.colors.onSurface,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyWalletSubtitle: {
+    ...theme.typography.subheadline,
+    color: theme.colors.secondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+    paddingHorizontal: 12,
+  },
+  goToWalletsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: theme.colors.primaryDark,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: theme.radii.pill,
+    ...theme.shadows.glow,
+  },
+  goToWalletsBtnText: {
+    ...theme.typography.headline,
+    color: '#ffffff',
+    fontWeight: '700',
   },
 });

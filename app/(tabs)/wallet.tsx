@@ -44,12 +44,12 @@ import { WalletSkeleton } from '../../src/components/Skeleton';
 
 // Preset color options for wallets
 const WALLET_COLORS = [
-  { label: 'Tertiary Indigo', value: '#4c4aca', gradient: ['#4c4aca', '#3b38ba', '#252285'] as const },
-  { label: 'Emerald Cash', value: '#059669', gradient: ['#059669', '#047857', '#064e3b'] as const },
-  { label: 'Putu Pink', value: '#b7004f', gradient: ['#e40a65', '#b7004f', '#730d3a'] as const },
-  { label: 'Royal Blue', value: '#2563eb', gradient: ['#3b82f6', '#2563eb', '#1d4ed8'] as const },
-  { label: 'Deep Slate', value: '#1e293b', gradient: ['#334155', '#1e293b', '#0f172a'] as const },
-  { label: 'Amber Gold', value: '#d97706', gradient: ['#f59e0b', '#d97706', '#b45309'] as const },
+  { label: 'Tertiary Indigo', color: theme.colors.tertiary, gradient: ['#4c4aca', '#3b38ba', '#252285'] as const },
+  { label: 'Emerald Cash', color: theme.colors.emeraldDark, gradient: ['#059669', '#047857', '#064e3b'] as const },
+  { label: 'Putu Pink', color: theme.colors.primaryDark, gradient: ['#e40a65', '#b7004f', '#730d3a'] as const },
+  { label: 'Royal Blue', color: theme.colors.blue, gradient: ['#3b82f6', '#2563eb', '#1d4ed8'] as const },
+  { label: 'Deep Slate', color: theme.colors.slateDark, gradient: ['#334155', '#1e293b', '#0f172a'] as const },
+  { label: 'Amber Gold', color: theme.colors.amber, gradient: ['#f59e0b', '#d97706', '#b45309'] as const },
 ];
 
 // Preset icon options for wallets
@@ -61,7 +61,7 @@ const WALLET_ICONS = [
 ];
 
 function getGradientForColor(color?: string) {
-  const match = WALLET_COLORS.find((c) => c.value.toLowerCase() === (color || '').toLowerCase());
+  const match = WALLET_COLORS.find((c) => c.color.toLowerCase() === (color || '').toLowerCase());
   if (match) return match.gradient;
   return ['#4c4aca', '#3b38ba', '#252285'] as const;
 }
@@ -122,13 +122,13 @@ export default function WalletScreen() {
   // Form states for Create Wallet
   const [newName, setNewName] = useState('');
   const [newOpeningBalance, setNewOpeningBalance] = useState('');
-  const [newColor, setNewColor] = useState(WALLET_COLORS[0].value);
+  const [newColor, setNewColor] = useState<string>(WALLET_COLORS[0].color);
   const [newIcon, setNewIcon] = useState(WALLET_ICONS[0].id);
 
   // Form states for Edit Wallet
   const [editId, setEditId] = useState('');
   const [editName, setEditName] = useState('');
-  const [editColor, setEditColor] = useState(WALLET_COLORS[0].value);
+  const [editColor, setEditColor] = useState<string>(WALLET_COLORS[0].color);
   const [editIcon, setEditIcon] = useState(WALLET_ICONS[0].id);
 
   // Form states for Add/Deduct Money
@@ -155,7 +155,7 @@ export default function WalletScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setNewName('');
     setNewOpeningBalance('');
-    setNewColor(WALLET_COLORS[0].value);
+    setNewColor(WALLET_COLORS[0].color);
     setNewIcon(WALLET_ICONS[0].id);
     setCreateModalVisible(true);
   };
@@ -203,7 +203,7 @@ export default function WalletScreen() {
     setCardMenuVisible(false);
     setEditId(activeWallet.id || '');
     setEditName(activeWallet.name || '');
-    setEditColor(activeWallet.color || WALLET_COLORS[0].value);
+    setEditColor(activeWallet.color || WALLET_COLORS[0].color);
     setEditIcon(activeWallet.icon || WALLET_ICONS[0].id);
     setEditModalVisible(true);
   };
@@ -323,6 +323,7 @@ export default function WalletScreen() {
         type: isAdd ? 'income' : 'expense',
         date: new Date().toISOString().split('T')[0],
         note: noteToSave,
+        is_adjustment: true,
       });
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -637,9 +638,16 @@ export default function WalletScreen() {
                           />
                         </View>
                         <View style={styles.activityTextGroup}>
-                          <Text style={styles.activityTitle} numberOfLines={1}>
-                            {displayTitle}
-                          </Text>
+                          <View style={styles.activityTitleRow}>
+                            <Text style={styles.activityTitle} numberOfLines={1}>
+                              {displayTitle}
+                            </Text>
+                            {tx.is_adjustment ? (
+                              <View style={styles.adjustmentBadge}>
+                                <Text style={styles.adjustmentBadgeText}>Adjustment</Text>
+                              </View>
+                            ) : null}
+                          </View>
                           <Text style={styles.activityMeta} numberOfLines={1}>
                             {categorySubtitle} • {tx.date ? tx.date.slice(0, 10) : 'Recent'}
                           </Text>
@@ -721,18 +729,18 @@ export default function WalletScreen() {
               <Text style={styles.inputLabel}>Color Theme</Text>
               <View style={styles.swatchesRow}>
                 {WALLET_COLORS.map((col) => {
-                  const isSelected = newColor.toLowerCase() === col.value.toLowerCase();
+                  const isSelected = newColor.toLowerCase() === col.color.toLowerCase();
                   return (
                     <TouchableOpacity
-                      key={col.value}
+                      key={col.color}
                       style={[
                         styles.colorSwatch,
-                        { backgroundColor: col.value },
+                        { backgroundColor: col.color },
                         isSelected && styles.colorSwatchActive,
                       ]}
                       onPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setNewColor(col.value);
+                        setNewColor(col.color);
                       }}
                       activeOpacity={0.8}
                     />
@@ -827,7 +835,7 @@ export default function WalletScreen() {
               onPress={handleDeleteWallet}
               activeOpacity={0.7}
             >
-              <View style={[styles.menuItemIconBox, { backgroundColor: '#fee2e2' }]}>
+              <View style={[styles.menuItemIconBox, { backgroundColor: theme.colors.roseLight }]}>
                 <TrashIcon size={18} color={theme.colors.error} />
               </View>
               <Text style={[styles.menuItemText, { color: theme.colors.error }]}>
@@ -889,18 +897,18 @@ export default function WalletScreen() {
               <Text style={styles.inputLabel}>Color Theme</Text>
               <View style={styles.swatchesRow}>
                 {WALLET_COLORS.map((col) => {
-                  const isSelected = editColor.toLowerCase() === col.value.toLowerCase();
+                  const isSelected = editColor.toLowerCase() === col.color.toLowerCase();
                   return (
                     <TouchableOpacity
-                      key={col.value}
+                      key={col.color}
                       style={[
                         styles.colorSwatch,
-                        { backgroundColor: col.value },
+                        { backgroundColor: col.color },
                         isSelected && styles.colorSwatchActive,
                       ]}
                       onPress={() => {
                         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setEditColor(col.value);
+                        setEditColor(col.color);
                       }}
                       activeOpacity={0.8}
                     />
@@ -1407,10 +1415,27 @@ const styles = StyleSheet.create({
   activityTextGroup: {
     flex: 1,
   },
+  activityTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   activityTitle: {
     ...theme.typography.headline,
     fontSize: 15,
     color: theme.colors.onSurface,
+  },
+  adjustmentBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: theme.radii.pill,
+    backgroundColor: theme.colors.surfaceContainerHigh,
+  },
+  adjustmentBadgeText: {
+    ...theme.typography.caption,
+    fontSize: 10,
+    fontWeight: '600',
+    color: theme.colors.tertiary,
   },
   activityMeta: {
     ...theme.typography.footnote,
@@ -1665,7 +1690,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   menuItemDestructive: {
-    backgroundColor: '#fff1f2',
+    backgroundColor: theme.colors.roseLight,
   },
   menuItemIconBox: {
     width: 36,
