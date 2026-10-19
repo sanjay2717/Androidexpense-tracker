@@ -25,6 +25,7 @@ import {
   AvatarPeekLeft,
   AvatarPeekRight,
 } from './AvatarIllustrations';
+import { theme } from '../theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: theme.colors.background,
     zIndex: 99999,
   },
   topAmbientGlow: {
@@ -441,18 +442,18 @@ const styles = StyleSheet.create({
   },
   annotationDot: {
     fontSize: 10,
-    color: '#FF2D78',
+    color: theme.colors.primary,
     marginRight: 2,
   },
   annotationCurrency: {
     fontSize: 13,
-    color: '#888',
+    color: theme.colors.secondary,
     fontWeight: '600',
   },
   annotationText: {
     fontSize: 15,
     fontFamily: 'Inter_600SemiBold',
-    color: '#2A2930',
+    color: theme.colors.onSurface,
   },
   annotationSpark: {
     fontSize: 14,
@@ -493,7 +494,7 @@ const styles = StyleSheet.create({
   brandTitle: {
     fontSize: 78,
     fontWeight: '800',
-    color: '#FF2D78',
+    color: theme.colors.primary,
     letterSpacing: -1.5,
     textShadowColor: 'rgba(255, 45, 120, 0.28)',
     textShadowOffset: { width: 0, height: 4 },
@@ -514,7 +515,7 @@ const styles = StyleSheet.create({
   brandSubtitle: {
     fontSize: 12,
     fontFamily: 'Inter_700Bold',
-    color: '#9E9AA6',
+    color: theme.colors.secondary,
     letterSpacing: 3.5,
     marginTop: 6,
   },
@@ -537,7 +538,7 @@ const styles = StyleSheet.create({
   quoteText: {
     fontSize: 15,
     fontFamily: 'Inter_600SemiBold',
-    color: '#28272E',
+    color: theme.colors.onSurface,
     lineHeight: 20,
   },
   quoteAuthorRow: {
@@ -548,7 +549,7 @@ const styles = StyleSheet.create({
   quoteAuthor: {
     fontSize: 12,
     fontFamily: 'Inter_500Medium',
-    color: '#FF2D78',
+    color: theme.colors.primary,
     fontStyle: 'italic',
   },
   squiggle: {
@@ -566,14 +567,14 @@ const styles = StyleSheet.create({
     width: 180,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#EBE7E1',
+    backgroundColor: theme.colors.surfaceContainerHigh,
     position: 'relative',
     overflow: 'visible',
   },
   progressFill: {
     height: '100%',
     borderRadius: 3,
-    backgroundColor: '#FF2D78',
+    backgroundColor: theme.colors.primary,
   },
   progressBead: {
     position: 'absolute',
@@ -581,8 +582,8 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#FF2D78',
+    backgroundColor: theme.colors.surfaceContainerLowest,
+    shadowColor: theme.colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 5,

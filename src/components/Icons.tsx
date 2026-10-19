@@ -1,12 +1,13 @@
 import React from 'react';
 import Svg, { Path, Circle, Rect, G } from 'react-native-svg';
+import { theme } from '../theme';
 
 interface IconProps {
   size?: number;
   color?: string;
 }
 
-export function HomeIcon({ size = 24, color = '#1a1b1f' }: IconProps) {
+export function HomeIcon({ size = 24, color = theme.colors.onSurface }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -17,7 +18,7 @@ export function HomeIcon({ size = 24, color = '#1a1b1f' }: IconProps) {
   );
 }
 
-export function WalletIcon({ size = 24, color = '#1a1b1f' }: IconProps) {
+export function WalletIcon({ size = 24, color = theme.colors.onSurface }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -32,7 +33,7 @@ export function WalletIcon({ size = 24, color = '#1a1b1f' }: IconProps) {
   );
 }
 
-export function PlusIcon({ size = 28, color = '#ffffff' }: IconProps) {
+export function PlusIcon({ size = 28, color = theme.colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -46,7 +47,7 @@ export function PlusIcon({ size = 28, color = '#ffffff' }: IconProps) {
   );
 }
 
-export function CalendarIcon({ size = 24, color = '#1a1b1f' }: IconProps) {
+export function CalendarIcon({ size = 24, color = theme.colors.onSurface }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Rect
@@ -63,7 +64,7 @@ export function CalendarIcon({ size = 24, color = '#1a1b1f' }: IconProps) {
   );
 }
 
-export function ChartIcon({ size = 24, color = '#1a1b1f' }: IconProps) {
+export function ChartIcon({ size = 24, color = theme.colors.onSurface }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -77,7 +78,7 @@ export function ChartIcon({ size = 24, color = '#1a1b1f' }: IconProps) {
   );
 }
 
-export function TuneIcon({ size = 20, color = '#5e5e5e' }: IconProps) {
+export function TuneIcon({ size = 20, color = theme.colors.secondary }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -90,7 +91,7 @@ export function TuneIcon({ size = 20, color = '#5e5e5e' }: IconProps) {
   );
 }
 
-export function BellIcon({ size = 20, color = '#5e5e5e' }: IconProps) {
+export function BellIcon({ size = 20, color = theme.colors.secondary }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -104,7 +105,7 @@ export function BellIcon({ size = 20, color = '#5e5e5e' }: IconProps) {
   );
 }
 
-export function ArrowUpIcon({ size = 18, color = '#059669' }: IconProps) {
+export function ArrowUpIcon({ size = 18, color = theme.colors.emeraldDark }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -118,7 +119,7 @@ export function ArrowUpIcon({ size = 18, color = '#059669' }: IconProps) {
   );
 }
 
-export function ArrowDownIcon({ size = 18, color = '#b7004f' }: IconProps) {
+export function ArrowDownIcon({ size = 18, color = theme.colors.primaryDark }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -132,7 +133,7 @@ export function ArrowDownIcon({ size = 18, color = '#b7004f' }: IconProps) {
   );
 }
 
-export function CheckCircleIcon({ size = 15, color = '#059669' }: IconProps) {
+export function CheckCircleIcon({ size = 15, color = theme.colors.emeraldDark }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
@@ -147,7 +148,7 @@ export function CheckCircleIcon({ size = 15, color = '#059669' }: IconProps) {
   );
 }
 
-export function ChevronRightIcon({ size = 18, color = '#FF2D78' }: IconProps) {
+export function ChevronRightIcon({ size = 18, color = theme.colors.primary }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -161,7 +162,7 @@ export function ChevronRightIcon({ size = 18, color = '#FF2D78' }: IconProps) {
   );
 }
 
-export function ShieldCheckIcon({ size = 18, color = '#FF2D78' }: IconProps) {
+export function ShieldCheckIcon({ size = 18, color = theme.colors.primary }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -182,7 +183,7 @@ export function ShieldCheckIcon({ size = 18, color = '#FF2D78' }: IconProps) {
   );
 }
 
-export function CategoryIcon({ name, color = '#FF2D78', size = 20 }: { name?: string; color?: string; size?: number }) {
+export function CategoryIcon({ name, color = theme.colors.primary, size = 20 }: { name?: string; color?: string; size?: number }) {
   const normalized = (name || '').toLowerCase();
 
   if (normalized.includes('coffee') || normalized.includes('food') || normalized.includes('cafe') || normalized.includes('dining')) {
@@ -224,7 +225,7 @@ export function CategoryIcon({ name, color = '#FF2D78', size = 20 }: { name?: st
   );
 }
 
-export function BankIcon({ size = 22, color = '#ffffff' }: IconProps) {
+export function BankIcon({ size = 22, color = theme.colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -238,7 +239,7 @@ export function BankIcon({ size = 22, color = '#ffffff' }: IconProps) {
   );
 }
 
-export function CashIcon({ size = 22, color = '#ffffff' }: IconProps) {
+export function CashIcon({ size = 22, color = theme.colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Rect x="2" y="6" width="20" height="12" rx="2" stroke={color} strokeWidth={2} />
@@ -248,7 +249,7 @@ export function CashIcon({ size = 22, color = '#ffffff' }: IconProps) {
   );
 }
 
-export function CardIcon({ size = 22, color = '#ffffff' }: IconProps) {
+export function CardIcon({ size = 22, color = theme.colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Rect x="2" y="5" width="20" height="14" rx="2.5" stroke={color} strokeWidth={2} />
@@ -258,7 +259,7 @@ export function CardIcon({ size = 22, color = '#ffffff' }: IconProps) {
   );
 }
 
-export function WalletIconByType({ iconName, size = 22, color = '#ffffff' }: { iconName?: string; size?: number; color?: string }) {
+export function WalletIconByType({ iconName, size = 22, color = theme.colors.white }: { iconName?: string; size?: number; color?: string }) {
   const norm = (iconName || '').toLowerCase();
   if (norm.includes('cash') || norm.includes('payment') || norm.includes('bill')) {
     return <CashIcon size={size} color={color} />;
@@ -269,7 +270,7 @@ export function WalletIconByType({ iconName, size = 22, color = '#ffffff' }: { i
   return <BankIcon size={size} color={color} />;
 }
 
-export function MinusIcon({ size = 20, color = '#5e5e5e' }: IconProps) {
+export function MinusIcon({ size = 20, color = theme.colors.secondary }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M5 12h14" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
@@ -277,7 +278,7 @@ export function MinusIcon({ size = 20, color = '#5e5e5e' }: IconProps) {
   );
 }
 
-export function CloseIcon({ size = 20, color = '#1a1b1f' }: IconProps) {
+export function CloseIcon({ size = 20, color = theme.colors.onSurface }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path d="M18 6 6 18M6 6l12 12" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
@@ -285,7 +286,7 @@ export function CloseIcon({ size = 20, color = '#1a1b1f' }: IconProps) {
   );
 }
 
-export function DotsVerticalIcon({ size = 20, color = '#ffffff' }: IconProps) {
+export function DotsVerticalIcon({ size = 20, color = theme.colors.white }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle cx="12" cy="5" r="1.75" fill={color} />
@@ -295,7 +296,7 @@ export function DotsVerticalIcon({ size = 20, color = '#ffffff' }: IconProps) {
   );
 }
 
-export function PencilIcon({ size = 18, color = '#1a1b1f' }: IconProps) {
+export function PencilIcon({ size = 18, color = theme.colors.onSurface }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -309,7 +310,7 @@ export function PencilIcon({ size = 18, color = '#1a1b1f' }: IconProps) {
   );
 }
 
-export function TrashIcon({ size = 18, color = '#ba1a1a' }: IconProps) {
+export function TrashIcon({ size = 18, color = theme.colors.error }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -323,3 +324,55 @@ export function TrashIcon({ size = 18, color = '#ba1a1a' }: IconProps) {
   );
 }
 
+export function FlagIcon({ size = 20, color = theme.colors.onSurface }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1v19"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function TrophyIcon({ size = 22, color = theme.colors.amber }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.45 1-1 1H8c0 1.5 1.5 3 4 3s4-1.5 4-3h-1c-.55 0-1-.45-1-1v-2.34M6 4h12v6a6 6 0 0 1-12 0V4Z"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function SparklesIcon({ size = 20, color = theme.colors.primary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="m12 3 1.912 5.885L20 10.8l-4.717 3.428L17.09 20 12 16.286 6.909 20l1.808-5.772L4 10.8l6.088-1.915L12 3Z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+export function TrendingUpIcon({ size = 20, color = theme.colors.primaryDark }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="m23 6-9.5 9.5-5-5L1 18M17 6h6v6"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}

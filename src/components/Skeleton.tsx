@@ -142,6 +142,49 @@ export function WalletSkeleton() {
   );
 }
 
+export function PlanningSkeleton() {
+  return (
+    <View style={styles.container}>
+      {/* Title & Segmented pill skeleton */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 }}>
+        <Skeleton width={120} height={32} borderRadius={8} />
+        <Skeleton width={96} height={36} borderRadius={18} />
+      </View>
+      <Skeleton width="100%" height={40} borderRadius={14} style={{ marginTop: 8 }} />
+
+      {/* Summary card skeleton */}
+      <View style={[styles.card, { marginTop: 6 }]}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View>
+            <Skeleton width={100} height={14} borderRadius={4} />
+            <Skeleton width={140} height={32} borderRadius={8} style={{ marginTop: 6 }} />
+          </View>
+          <Skeleton width={70} height={24} borderRadius={12} />
+        </View>
+        <Skeleton width="100%" height={10} borderRadius={5} style={{ marginTop: 16 }} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+          <Skeleton width={90} height={12} borderRadius={4} />
+          <Skeleton width={110} height={12} borderRadius={4} />
+        </View>
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 14 }}>
+          <Skeleton width="48%" height={56} borderRadius={14} />
+          <Skeleton width="48%" height={56} borderRadius={14} />
+        </View>
+      </View>
+
+      {/* Section List skeleton */}
+      <View style={[styles.card, { marginTop: 6 }]}>
+        <Skeleton width={140} height={18} borderRadius={6} style={{ marginBottom: 16 }} />
+        <View style={{ gap: 14 }}>
+          <Skeleton width="100%" height={52} borderRadius={12} />
+          <Skeleton width="100%" height={52} borderRadius={12} />
+          <Skeleton width="100%" height={52} borderRadius={12} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: theme.spacing.margin,

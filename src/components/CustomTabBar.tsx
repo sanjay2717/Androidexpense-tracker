@@ -107,7 +107,7 @@ export function CustomTabBar({ state, descriptors, navigation }: CustomTabBarPro
             style={styles.raisedButton}
             activeOpacity={0.88}
           >
-            <PlusIcon size={28} color="#ffffff" />
+            <PlusIcon size={28} color={theme.colors.surfaceContainerLowest} />
           </TouchableOpacity>
         </View>
 
@@ -172,11 +172,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: '#ffffff',
+    backgroundColor: theme.colors.surfaceContainerLowest,
     borderTopWidth: 1,
     borderTopColor: theme.colors.hairline,
     paddingHorizontal: 8,
-    shadowColor: '#000',
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.05,
     shadowRadius: 16,
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primaryContainer,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#e40a65',
+    shadowColor: theme.colors.primaryContainer,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.38,
     shadowRadius: 16,
