@@ -29,6 +29,8 @@ export const unstable_settings = {
 // Prevent native splash screen from hiding prematurely
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+import { getRouteRedirect } from '../src/lib/routeGate';
+
 function RootLayoutContent() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -38,7 +40,7 @@ function RootLayoutContent() {
     Inter_800ExtraBold,
   });
 
-  const { isPermanentUser, isGuestActive, isLoading: isAuthLoading } = useAuth();
+  const { isPermanentUser, isAnonymous, isGuestActive, session, user, isLoading: isAuthLoading, isUpgrading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const { isLoadingVisible, loadingKey, handleLoadingFinish } = useLoading();
@@ -48,20 +50,24 @@ function RootLayoutContent() {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
-  const isAllowedInTabs = isPermanentUser || isGuestActive;
+  const hasSession = Boolean(session || user || isGuestActive);
+  const isAnon = Boolean(isAnonymous || isGuestActive);
 
-  // Route gating: redirect based on auth status
+  // Route gating: redirect based on auth status using pure route gate
   useEffect(() => {
     if (isAuthLoading) return;
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const targetRedirect = getRouteRedirect({
+      hasSession,
+      isAnonymous: isAnon,
+      isUpgrading,
+      segments,
+    });
 
-    if (!isAllowedInTabs && !inAuthGroup) {
-      router.replace('/(auth)/sign-in');
-    } else if (isAllowedInTabs && inAuthGroup) {
-      router.replace('/(tabs)');
+    if (targetRedirect) {
+      router.replace(targetRedirect as any);
     }
-  }, [isAllowedInTabs, isAuthLoading, segments, router]);
+  }, [hasSession, isAnon, isAuthLoading, isUpgrading, segments, router]);
 
   useEffect(() => {
     if (fontError) {
@@ -85,6 +91,14 @@ function RootLayoutContent() {
       >
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="upgrade-sync"
+          options={{
+            headerShown: false,
+            gestureEnabled: false,
+            animation: 'slide_from_right',
+          }}
+        />
         <Stack.Screen
           name="add"
           options={{
