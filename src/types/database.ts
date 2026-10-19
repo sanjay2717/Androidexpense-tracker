@@ -43,6 +43,20 @@ export interface Transaction {
   note?: string;
   date?: string;
   created_at?: string;
+  is_adjustment?: boolean;
   category?: Category | null;
   wallet?: Wallet | null;
 }
+
+export interface Goal {
+  id: string;
+  user_id?: string;
+  name: string;
+  target_amount: number;
+  saved_amount?: number;
+  target_date?: string | null;
+  color?: string;
+  icon?: string;
+  created_at?: string;
+}
+

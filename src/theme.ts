@@ -38,6 +38,21 @@ export const theme = {
     roseLight: '#fff1f2',
     error: '#ba1a1a',
 
+    // Warning / Orange / Amber
+    warning: '#ea580c',
+    warningLight: '#ffedd5',
+    amber: '#d97706',
+    amberLight: '#fef3c7',
+
+    // Slate & Blue
+    slate: '#334155',
+    slateDark: '#1e293b',
+    blue: '#2563eb',
+
+    // Pure Neutrals
+    white: '#ffffff',
+    black: '#000000',
+
     // Borders & Hairlines
     outline: '#8f6f74',
     outlineVariant: '#e4bdc3',

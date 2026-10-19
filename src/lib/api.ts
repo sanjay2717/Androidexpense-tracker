@@ -1,38 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase, isSupabaseConfigured } from './supabase';
-import { Transaction, WalletBalance, Category } from '../types/database';
+import { Transaction, WalletBalance, Category, Goal } from '../types/database';
 
-export const LOCAL_TRANSACTIONS_STORAGE_KEY = '@putu_local_transactions';
-
-/**
- * Retrieve transactions saved locally in AsyncStorage
- */
-export async function getLocalTransactions(): Promise<Transaction[]> {
-  try {
-    const raw = await AsyncStorage.getItem(LOCAL_TRANSACTIONS_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.warn('Failed to load local transactions:', err);
-    return [];
-  }
-}
-
-/**
- * Save a new transaction into persistent local AsyncStorage
- */
-export async function saveLocalTransaction(tx: Transaction): Promise<void> {
-  try {
-    const existing = await getLocalTransactions();
-    const filtered = existing.filter((item) => item.id !== tx.id);
-    const updated = [tx, ...filtered];
-    await AsyncStorage.setItem(LOCAL_TRANSACTIONS_STORAGE_KEY, JSON.stringify(updated));
-  } catch (err) {
-    console.warn('Failed to save local transaction:', err);
-  }
-}
 
 export interface CategorySpending {
   categoryId: string;
@@ -97,13 +66,11 @@ export async function fetchCategories(): Promise<Category[]> {
 }
 
 /**
- * Fetch transactions with category and wallet joins, merging with local storage
+ * Fetch transactions with category, wallet joins, and is_adjustment flag directly from Supabase
  */
 export async function fetchTransactions(): Promise<Transaction[]> {
-  const localTransactions = await getLocalTransactions();
-
   if (!isSupabaseConfigured) {
-    return localTransactions;
+    return [];
   }
 
   try {
@@ -118,15 +85,16 @@ export async function fetchTransactions(): Promise<Transaction[]> {
         created_at,
         wallet_id,
         category_id,
+        is_adjustment,
         categories (id, name, color, icon),
         wallets (id, name)
       `)
       .order('date', { ascending: false, nullsFirst: false })
-      .limit(30);
+      .limit(50);
 
     if (error) {
-      // If table has RLS or temporary network restriction, gracefully return local transactions
-      return localTransactions;
+      console.warn('Error fetching transactions from Supabase:', error.message);
+      return [];
     }
 
     const cloudTransactions: Transaction[] = (data || []).map((t: any) => ({
@@ -138,26 +106,15 @@ export async function fetchTransactions(): Promise<Transaction[]> {
       created_at: t.created_at,
       wallet_id: t.wallet_id,
       category_id: t.category_id,
+      is_adjustment: Boolean(t.is_adjustment),
       category: Array.isArray(t.categories) ? t.categories[0] : t.categories,
       wallet: Array.isArray(t.wallets) ? t.wallets[0] : t.wallets,
     }));
 
-    // Merge cloud and local transactions, deduplicating by ID
-    const mergedMap = new Map<string, Transaction>();
-    localTransactions.forEach((tx) => mergedMap.set(tx.id, tx));
-    cloudTransactions.forEach((tx) => mergedMap.set(tx.id, tx));
-
-    const merged = Array.from(mergedMap.values());
-    merged.sort((a, b) => {
-      const dateA = new Date(a.date || a.created_at || 0).getTime();
-      const dateB = new Date(b.date || b.created_at || 0).getTime();
-      return dateB - dateA;
-    });
-
-    return merged;
+    return cloudTransactions;
   } catch (err) {
     console.warn('Error fetching transactions:', err);
-    return localTransactions;
+    return [];
   }
 }
 
@@ -228,6 +185,11 @@ export function useHomeDashboardData() {
   const categoryMap = new Map<string, { id: string; name: string; amount: number; color?: string }>();
 
   transactions.forEach((tx) => {
+    // EXCLUDE is_adjustment = true rows from all financial aggregates
+    if (tx.is_adjustment) {
+      return;
+    }
+
     const txDate = new Date(tx.date || tx.created_at || '');
     const isThisMonth =
       !isNaN(txDate.getTime()) &&
@@ -333,6 +295,7 @@ export interface AddTransactionInput {
   type: 'expense' | 'income';
   date: string;
   note?: string;
+  is_adjustment?: boolean;
   category?: Category | null;
   wallet?: any;
 }
@@ -345,57 +308,44 @@ export function useAddTransaction() {
 
   return useMutation({
     mutationFn: async (input: AddTransactionInput) => {
-      // 1. Always save to local AsyncStorage first so user never loses data offline
-      const localTx: Transaction = {
-        id: 'tx-' + Date.now().toString(),
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const payload: any = {
+        wallet_id: input.wallet_id,
         amount: input.amount,
         type: input.type,
-        note: input.note || '',
         date: input.date,
-        created_at: new Date().toISOString(),
-        wallet_id: input.wallet_id,
-        category_id: input.category_id,
-        category: input.category,
-        wallet: input.wallet,
+        is_adjustment: input.is_adjustment ?? false,
       };
-      await saveLocalTransaction(localTx);
-
-      // 2. Insert into Supabase if configured. Do NOT send user_id (Postgres defaults it to auth.uid())
-      if (isSupabaseConfigured) {
-        const payload: any = {
-          wallet_id: input.wallet_id,
-          amount: input.amount,
-          type: input.type,
-          date: input.date,
-        };
-        if (input.category_id) {
-          payload.category_id = input.category_id;
-        }
-        if (input.note && input.note.trim()) {
-          payload.note = input.note.trim();
-        }
-
-        const { data, error } = await supabase
-          .from('transactions')
-          .insert([payload])
-          .select(`
-            id,
-            amount,
-            type,
-            note,
-            date,
-            created_at,
-            wallet_id,
-            category_id
-          `)
-          .single();
-
-        if (error) {
-          throw error;
-        }
-        return data;
+      if (input.category_id) {
+        payload.category_id = input.category_id;
       }
-      return localTx;
+      if (input.note && input.note.trim()) {
+        payload.note = input.note.trim();
+      }
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert([payload])
+        .select(`
+          id,
+          amount,
+          type,
+          note,
+          date,
+          created_at,
+          wallet_id,
+          category_id,
+          is_adjustment
+        `)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
     },
     onMutate: async (newTxInput) => {
       // Cancel outgoing refetches
@@ -415,6 +365,7 @@ export function useAddTransaction() {
         created_at: new Date().toISOString(),
         wallet_id: newTxInput.wallet_id,
         category_id: newTxInput.category_id,
+        is_adjustment: newTxInput.is_adjustment ?? false,
         category: newTxInput.category,
         wallet: newTxInput.wallet,
       };
@@ -554,3 +505,205 @@ export function useDeleteWallet() {
     },
   });
 }
+
+/**
+ * Query hook to fetch categories
+ */
+export function useCategories() {
+  return useQuery<Category[]>({
+    queryKey: ['categories'],
+    queryFn: fetchCategories,
+    staleTime: 1000 * 60,
+  });
+}
+
+export interface UpdateCategoryBudgetInput {
+  categoryId: string;
+  budgetLimit: number | null;
+}
+
+/**
+ * Mutation to set or clear a category budget limit
+ */
+export function useUpdateCategoryBudget() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdateCategoryBudgetInput) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const { data, error } = await supabase
+        .from('categories')
+        .update({ budget_limit: input.budgetLimit })
+        .eq('id', input.categoryId)
+        .select('*')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+}
+
+/**
+ * Fetch goals from Supabase
+ */
+export async function fetchGoals(): Promise<Goal[]> {
+  if (!isSupabaseConfigured) {
+    return [];
+  }
+
+  const { data, error } = await supabase
+    .from('goals')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.warn('Notice fetching goals:', error.message);
+    return [];
+  }
+  return data ?? [];
+}
+
+/**
+ * Query hook to fetch goals
+ */
+export function useGoals() {
+  return useQuery<Goal[]>({
+    queryKey: ['goals'],
+    queryFn: fetchGoals,
+    staleTime: 1000 * 30,
+  });
+}
+
+export interface CreateGoalInput {
+  name: string;
+  target_amount: number;
+  saved_amount?: number;
+  target_date?: string | null;
+  color?: string;
+  icon?: string;
+}
+
+/**
+ * Mutation to create a goal without user_id
+ */
+export function useCreateGoal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateGoalInput) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const payload: any = {
+        name: input.name.trim(),
+        target_amount: input.target_amount,
+        saved_amount: input.saved_amount ?? 0,
+        target_date: input.target_date || null,
+        color: input.color || '#FF2D78',
+        icon: input.icon || 'flag',
+      };
+
+      const { data, error } = await supabase
+        .from('goals')
+        .insert([payload])
+        .select('*')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+    },
+  });
+}
+
+export interface UpdateGoalInput {
+  id: string;
+  name?: string;
+  target_amount?: number;
+  saved_amount?: number;
+  target_date?: string | null;
+  color?: string;
+  icon?: string;
+}
+
+/**
+ * Mutation to update an existing goal or increase saved_amount
+ */
+export function useUpdateGoal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdateGoalInput) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const updateData: any = {};
+      if (input.name !== undefined) updateData.name = input.name.trim();
+      if (input.target_amount !== undefined) updateData.target_amount = input.target_amount;
+      if (input.saved_amount !== undefined) updateData.saved_amount = input.saved_amount;
+      if (input.target_date !== undefined) updateData.target_date = input.target_date;
+      if (input.color !== undefined) updateData.color = input.color;
+      if (input.icon !== undefined) updateData.icon = input.icon;
+
+      const { data, error } = await supabase
+        .from('goals')
+        .update(updateData)
+        .eq('id', input.id)
+        .select('*')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+    },
+  });
+}
+
+/**
+ * Mutation to delete a goal
+ */
+export function useDeleteGoal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (goalId: string) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const { error } = await supabase
+        .from('goals')
+        .delete()
+        .eq('id', goalId);
+
+      if (error) {
+        throw error;
+      }
+      return goalId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+    },
+  });
+}
+
