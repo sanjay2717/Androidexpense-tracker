@@ -14,6 +14,7 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import NetInfo from '@react-native-community/netinfo';
 import { useHomeDashboardData } from '../../src/lib/api';
+import { useAuth } from '../../src/lib/auth';
 import { useLoading } from '../../src/context/LoadingContext';
 import { CountUpText } from '../../src/components/CountUpText';
 import { DonutChart } from '../../src/components/DonutChart';
@@ -21,6 +22,8 @@ import { HomeSkeleton } from '../../src/components/Skeleton';
 import {
   BellIcon,
   TuneIcon,
+  GearIcon,
+  PersonOutlineIcon,
   ArrowUpIcon,
   ArrowDownIcon,
   CheckCircleIcon,
@@ -36,6 +39,7 @@ const AVATAR_URL =
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user, isAnonymous } = useAuth();
   const { metrics, isLoading, isError, error, dataUpdatedAt, refetch } = useHomeDashboardData();
   const { reloadApp } = useLoading();
   const [refreshing, setRefreshing] = React.useState(false);
@@ -95,14 +99,47 @@ export default function HomeScreen() {
       {/* Pinned Top Bar / Warm Greeting - stays fixed when scrolling */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.avatarContainer}>
-            <Image source={{ uri: AVATAR_URL }} style={styles.avatarImage} />
+          <TouchableOpacity
+            style={styles.avatarContainer}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push('/profile');
+            }}
+            activeOpacity={0.8}
+            accessibilityLabel="Open Profile"
+            accessibilityRole="button"
+          >
+            <View style={styles.avatarInitialsCircle}>
+              {isAnonymous ? (
+                <PersonOutlineIcon size={20} color={theme.colors.primaryDark} />
+              ) : (
+                <Text style={styles.avatarInitialsText}>
+                  {user?.user_metadata?.display_name
+                    ? user.user_metadata.display_name
+                        .split(' ')
+                        .map((n: string) => n[0])
+                        .join('')
+                        .slice(0, 2)
+                        .toUpperCase()
+                    : user?.email?.slice(0, 2).toUpperCase() || 'PU'}
+                </Text>
+              )}
+            </View>
             <View style={styles.avatarDot} />
-          </View>
+          </TouchableOpacity>
           <View style={styles.headerTextCol}>
-            <Text style={styles.greetingText}>GOOD MORNING</Text>
+            <Text style={styles.greetingText}>
+              {new Date().getHours() < 12
+                ? 'GOOD MORNING'
+                : new Date().getHours() < 17
+                ? 'GOOD AFTERNOON'
+                : 'GOOD EVENING'}
+            </Text>
             <View style={styles.nameRow}>
-              <Text style={styles.userName}>Aarav Patel</Text>
+              <Text style={styles.userName}>
+                {user?.user_metadata?.display_name ||
+                  (isAnonymous ? 'Guest' : user?.email?.split('@')[0] || 'Friend')}
+              </Text>
               <View style={styles.verifiedDot}>
                 <Text style={styles.verifiedCheck}>✓</Text>
               </View>
@@ -122,8 +159,10 @@ export default function HomeScreen() {
             style={styles.headerBtn}
             onPress={handleSettingsPress}
             activeOpacity={0.7}
+            accessibilityLabel="Open Settings"
+            accessibilityRole="button"
           >
-            <TuneIcon size={20} color={theme.colors.secondary} />
+            <GearIcon size={20} color={theme.colors.secondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -484,11 +523,23 @@ const styles = StyleSheet.create({
   avatarContainer: {
     position: 'relative',
   },
-  avatarImage: {
+  avatarInitialsCircle: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: theme.colors.surfaceContainerHighest,
+    backgroundColor: theme.colors.primaryFixed,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.colors.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  avatarInitialsText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: theme.colors.primaryDark,
   },
   avatarDot: {
     position: 'absolute',

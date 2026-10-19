@@ -1,18 +1,91 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { ShieldCheckIcon, TuneIcon } from '../src/components/Icons';
+import { ShieldCheckIcon, ChevronRightIcon, PersonOutlineIcon } from '../src/components/Icons';
+import { useAuth } from '../src/lib/auth';
 import { theme } from '../src/theme';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user, isAnonymous, signOut } = useAuth();
 
   const handleDone = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
+  };
+
+  const displayName = user?.user_metadata?.display_name || (isAnonymous ? 'Guest User' : 'Account Holder');
+  const userIdentifier = isAnonymous ? 'Guest Session' : (user?.email || 'Authenticated User');
+  const initials = isAnonymous
+    ? 'GU'
+    : (user?.user_metadata?.display_name
+        ?.split(' ')
+        .map((n: string) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase() ||
+      user?.email?.slice(0, 2).toUpperCase() ||
+      'PU');
+
+  const handleOpenProfile = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.push('/profile');
+  };
+
+  const handleSignOutPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    if (isAnonymous) {
+      Alert.alert(
+        'Exit Guest Mode?',
+        "Guest data can't be recovered after you exit. Create an account first to keep it.",
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Exit anyway',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await signOut();
+                router.back();
+              } catch (err: any) {
+                Alert.alert('Error', err.message);
+              }
+            },
+          },
+          {
+            text: 'Create account',
+            style: 'default',
+            onPress: () => {
+              router.push('/(auth)/sign-up');
+            },
+          },
+        ]
+      );
+    } else {
+      Alert.alert(
+        'Log out of Putu?',
+        'You will need to sign in again to access your account.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Log Out',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await signOut();
+                router.back();
+              } catch (err: any) {
+                Alert.alert('Error Signing Out', err.message || 'Please try again.');
+              }
+            },
+          },
+        ]
+      );
+    }
   };
 
   return (
@@ -20,17 +93,53 @@ export default function SettingsScreen() {
       style={styles.container}
       contentContainerStyle={[styles.content, { paddingBottom: 40 + insets.bottom }]}
     >
-      {/* Profile Card */}
+      {/* Account Section */}
+      <View style={styles.sectionTitle}>
+        <Text style={styles.sectionHeader}>ACCOUNT</Text>
+      </View>
+
       <View style={styles.card}>
-        <View style={styles.avatarRow}>
+        <TouchableOpacity
+          style={styles.avatarRow}
+          onPress={handleOpenProfile}
+          activeOpacity={0.7}
+        >
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>AP</Text>
+            {isAnonymous ? (
+              <PersonOutlineIcon size={24} color={theme.colors.primaryDark} />
+            ) : (
+              <Text style={styles.avatarText}>{initials}</Text>
+            )}
           </View>
           <View style={{ flex: 1, marginLeft: 14 }}>
-            <Text style={styles.userName}>Aarav Patel</Text>
-            <Text style={styles.userEmail}>Anonymous Session Active</Text>
+            <Text style={styles.userName}>{displayName}</Text>
+            <Text style={styles.userEmail}>{userIdentifier}</Text>
           </View>
-        </View>
+          <ChevronRightIcon size={20} color={theme.colors.outlineVariant} />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        <TouchableOpacity
+          style={styles.profileRow}
+          onPress={handleOpenProfile}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.rowLabel}>View & Edit Profile</Text>
+          <ChevronRightIcon size={18} color={theme.colors.outlineVariant} />
+        </TouchableOpacity>
+
+        <View style={styles.divider} />
+
+        <TouchableOpacity
+          style={styles.signOutRow}
+          onPress={handleSignOutPress}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.signOutText}>
+            {isAnonymous ? 'Exit guest mode' : 'Sign out'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Settings Section */}
@@ -104,22 +213,24 @@ const styles = StyleSheet.create({
   avatarRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingBottom: 6,
+    paddingTop: 2,
   },
   avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: theme.colors.primaryFixed,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: theme.colors.primaryDark,
   },
   userName: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
     color: theme.colors.onSurface,
   },
@@ -127,6 +238,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: theme.colors.secondary,
     marginTop: 2,
+  },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  signOutRow: {
+    paddingTop: 12,
+    paddingBottom: 4,
+    alignItems: 'center',
+  },
+  signOutText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.error,
   },
   sectionTitle: {
     paddingHorizontal: 4,
@@ -158,6 +285,7 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: theme.colors.hairline,
+    marginVertical: 4,
   },
   colorPill: {
     flexDirection: 'row',
@@ -189,6 +317,6 @@ const styles = StyleSheet.create({
   doneButtonText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#ffffff',
+    color: theme.colors.white,
   },
 });
