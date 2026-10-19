@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_tab" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "surface-tint": "#bc0051", "surface-container": "#eeedf3", "on-error-container": "#93000a", "tertiary-container": "#6664e4", "on-tertiary-fixed": "#0c006a", "on-tertiary-container": "#fffbff", "on-primary-container": "#fffbff", "on-primary": "#ffffff", "surface-container-lowest": "#ffffff", "secondary-fixed": "#e2e2e2", "on-secondary-fixed-variant": "#474747", "primary": "#b7004f", "on-tertiary-fixed-variant": "#3631b4", "on-secondary-container": "#646464", "outline": "#8f6f74", "primary-fixed": "#ffd9df", "secondary-container": "#e2e2e2", "secondary-fixed-dim": "#c6c6c6", "surface-container-high": "#e9e7ed", "error-container": "#ffdad6", "on-primary-fixed": "#3f0017", "surface": "#faf9fe", "surface-dim": "#dad9df", "tertiary-fixed": "#e2dfff", "surface-bright": "#faf9fe", "on-surface-variant": "#5b3f44", "on-surface": "#1a1b1f", "background": "#faf9fe", "on-secondary-fixed": "#1b1b1b", "outline-variant": "#e4bdc3", "surface-container-low": "#f4f3f8", "on-background": "#1a1b1f", "on-primary-fixed-variant": "#90003d", "on-error": "#ffffff", "surface-container-highest": "#e3e2e7", "on-secondary": "#ffffff", "error": "#ba1a1a", "secondary": "#5e5e5e", "on-tertiary": "#ffffff", "primary-container": "#e40a65", "surface-variant": "#e3e2e7", "tertiary": "#4c4aca", "inverse-primary": "#ffb1c0", "tertiary-fixed-dim": "#c2c1ff", "inverse-surface": "#2f3034", "inverse-on-surface": "#f1f0f5", "primary-fixed-dim": "#ffb1c0" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "margin-mobile": "1rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "space-md": "1rem", "gutter-mobile": "0.75rem", "space-xl": "2.5rem", "gutter": "1rem", "space-xs": "0.25rem", "margin": "2rem" }, fontFamily: { "numeral-hero-mobile": ["Inter"], "display-large-mobile": ["Inter"], "body": ["Inter"], "title-3": ["Inter"], "caption": ["Inter"], "title-1": ["Inter"], "footnote": ["Inter"], "subheadline": ["Inter"], "headline": ["Inter"], "numeral-hero": ["Inter"], "callout": ["Inter"], "display-large": ["Inter"], "title-2": ["Inter"] }, fontSize: { "numeral-hero-mobile": ["36px", { lineHeight: "40px", letterSpacing: "-0.04em", fontWeight: "800" }], "display-large-mobile": ["34px", { lineHeight: "40px", letterSpacing: "-0.035em", fontWeight: "800" }], "body": ["17px", { lineHeight: "22px", letterSpacing: "-0.01em", fontWeight: "400" }], "title-3": ["20px", { lineHeight: "25px", letterSpacing: "-0.015em", fontWeight: "600" }], "caption": ["11px", { lineHeight: "13px", letterSpacing: "0.01em", fontWeight: "500" }], "title-1": ["28px", { lineHeight: "34px", letterSpacing: "-0.025em", fontWeight: "700" }], "footnote": ["13px", { lineHeight: "18px", letterSpacing: "0em", fontWeight: "400" }], "subheadline": ["15px", { lineHeight: "20px", letterSpacing: "-0.005em", fontWeight: "400" }], "headline": ["17px", { lineHeight: "22px", letterSpacing: "-0.015em", fontWeight: "600" }], "numeral-hero": ["48px", { lineHeight: "52px", letterSpacing: "-0.05em", fontWeight: "800" }], "callout": ["16px", { lineHeight: "21px", letterSpacing: "-0.01em", fontWeight: "500" }], "display-large": ["44px", { lineHeight: "52px", letterSpacing: "-0.04em", fontWeight: "800" }], "title-2": ["22px", { lineHeight: "28px", letterSpacing: "-0.02em", fontWeight: "700" }] } } } };</script><style>@layer base { html, body { width: 100%; margin: 0; padding: 0; min-height: 100%; } .pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px); } .pt-safe { padding-top: max(env(safe-area-inset-top, 0px), 12px); } main > :first-child { margin-top: 0 !important; } main > :last-child { margin-bottom: 0 !important; } } ::-webkit-scrollbar { display: none; }</style><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-surface font-body text-body text-on-surface flex flex-col min-h-screen selection:bg-primary/20"><main class="flex-1 flex flex-col relative w-full bg-surface pb-32 pt-safe"><div class="flex flex-col w-full px-margin-mobile pb-6 space-y-space-md">
+<!-- Header & Period Switcher -->
+<div class="flex flex-col space-y-space-sm pt-2">
+<div class="flex items-center justify-between">
+<div>
+<span class="font-caption text-caption text-secondary uppercase tracking-wider">Analytics</span>
+<h1 class="font-display-large-mobile text-display-large-mobile text-on-surface tracking-tight">Report</h1>
+</div>
+<div class="flex items-center space-x-space-xs">
+<button aria-label="Export summary" class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">ios_share</span>
+</button>
+<button aria-label="Filter by wallet" class="w-10 h-10 rounded-full bg-surface-container-lowest flex items-center justify-center text-on-surface shadow-sm active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+</div>
+</div>
+<!-- Month Selector Pill -->
+<div class="flex items-center justify-between bg-surface-container-lowest px-space-sm py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+<button aria-label="Previous month" class="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container-high transition-colors active:scale-90">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<div class="flex items-center space-x-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">calendar_today</span>
+<span class="font-headline text-headline text-on-surface">October 2026</span>
+</div>
+<button aria-label="Next month" class="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:text-on-surface hover:bg-surface-container-high transition-colors active:scale-90">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Hero Summary Card -->
+<div class="bg-surface-container-lowest rounded-[22px] p-space-lg shadow-[0_4px_20px_rgba(0,0,0,0.04)] relative overflow-hidden">
+<div class="absolute -right-12 -top-12 w-36 h-36 bg-primary-fixed/30 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-start justify-between">
+<div>
+<p class="font-caption text-caption tracking-widest text-secondary font-semibold uppercase">Net Savings</p>
+<h2 class="font-numeral-hero-mobile text-numeral-hero-mobile text-on-surface mt-1">₹21,400</h2>
+</div>
+<div class="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">
+<span class="material-symbols-outlined text-[14px] font-bold mr-0.5">trending_up</span>
+<span class="font-caption text-caption font-semibold">+12.4%</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs">
+<div class="flex justify-between items-center mb-1.5">
+<span class="font-subheadline text-subheadline text-on-surface-variant">34.2% of income retained</span>
+<span class="font-footnote text-footnote font-semibold text-primary">Target: 30%</span>
+</div>
+<div class="w-full h-2.5 bg-surface-container-high rounded-full overflow-hidden flex">
+<div class="h-full bg-gradient-to-r from-emerald-500 via-primary to-primary-container rounded-full" style="width: 34.2%;"></div>
+</div>
+</div>
+</div>
+<!-- Income & Expense Dual Cards -->
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- Income Card -->
+<div class="bg-surface-container-lowest rounded-[22px] p-space-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<div class="w-8 h-8 rounded-full bg-emerald-100/80 flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined text-[18px]">north_east</span>
+</div>
+<span class="font-caption text-caption text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded-full">+8%</span>
+</div>
+<div class="mt-space-sm">
+<p class="font-caption text-caption text-secondary">Income</p>
+<p class="font-title-3 text-title-3 text-on-surface mt-0.5">₹62,500</p>
+<p class="font-footnote text-footnote text-on-surface-variant mt-1">Salary &amp; Freelance</p>
+</div>
+</div>
+<!-- Expenses Card -->
+<div class="bg-surface-container-lowest rounded-[22px] p-space-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<div class="w-8 h-8 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">south_east</span>
+</div>
+<span class="font-caption text-caption text-on-surface-variant font-medium bg-surface-container px-1.5 py-0.5 rounded-full">Safe</span>
+</div>
+<div class="mt-space-sm">
+<p class="font-caption text-caption text-secondary">Expenses</p>
+<p class="font-title-3 text-title-3 text-on-surface mt-0.5">₹41,100</p>
+<p class="font-footnote text-footnote text-emerald-600 mt-1">₹3.9k below cap</p>
+</div>
+</div>
+</div>
+<!-- Last 6 Months Comparison Chart -->
+<div class="bg-surface-container-lowest rounded-[22px] p-space-lg shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+<div class="flex items-center justify-between mb-space-sm">
+<div>
+<h3 class="font-title-3 text-title-3 text-on-surface">Last 6 Months</h3>
+<p class="font-footnote text-footnote text-secondary mt-0.5">Income vs Outflow trends</p>
+</div>
+<div class="flex items-center space-x-3">
+<div class="flex items-center space-x-1">
+<div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+<span class="font-caption text-caption text-secondary">In</span>
+</div>
+<div class="flex items-center space-x-1">
+<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+<span class="font-caption text-caption text-secondary">Out</span>
+</div>
+</div>
+</div>
+<!-- SVG Bar Chart -->
+<div class="relative w-full pt-space-sm">
+<svg class="w-full h-44 overflow-visible" viewbox="0 0 320 160">
+<!-- Horizontal Reference Gridlines -->
+<line stroke="#E5E5EA" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="320" y1="20" y2="20"></line>
+<text fill="#8E8E93" font-family="Inter" font-size="9" text-anchor="end" x="320" y="16">₹60k</text>
+<line stroke="#E5E5EA" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="320" y1="70" y2="70"></line>
+<text fill="#8E8E93" font-family="Inter" font-size="9" text-anchor="end" x="320" y="66">₹40k</text>
+<line stroke="#E5E5EA" stroke-dasharray="3 3" stroke-width="1" x1="0" x2="320" y1="120" y2="120"></line>
+<text fill="#8E8E93" font-family="Inter" font-size="9" text-anchor="end" x="320" y="116">₹20k</text>
+<!-- May -->
+<g transform="translate(10, 0)">
+<rect fill="#10B981" fill-opacity="0.85" height="95" rx="5" width="14" x="0" y="45"></rect>
+<rect fill="#E40A65" fill-opacity="0.8" height="72" rx="5" width="14" x="16" y="68"></rect>
+<text fill="#8E8E93" font-family="Inter" font-size="10" font-weight="500" text-anchor="middle" x="15" y="154">May</text>
+</g>
+<!-- Jun -->
+<g transform="translate(62, 0)">
+<rect fill="#10B981" fill-opacity="0.85" height="100" rx="5" width="14" x="0" y="40"></rect>
+<rect fill="#E40A65" fill-opacity="0.8" height="80" rx="5" width="14" x="16" y="60"></rect>
+<text fill="#8E8E93" font-family="Inter" font-size="10" font-weight="500" text-anchor="middle" x="15" y="154">Jun</text>
+</g>
+<!-- Jul -->
+<g transform="translate(114, 0)">
+<rect fill="#10B981" fill-opacity="0.85" height="108" rx="5" width="14" x="0" y="32"></rect>
+<rect fill="#E40A65" fill-opacity="0.8" height="88" rx="5" width="14" x="16" y="52"></rect>
+<text fill="#8E8E93" font-family="Inter" font-size="10" font-weight="500" text-anchor="middle" x="15" y="154">Jul</text>
+</g>
+<!-- Aug -->
+<g transform="translate(166, 0)">
+<rect fill="#10B981" fill-opacity="0.85" height="102" rx="5" width="14" x="0" y="38"></rect>
+<rect fill="#E40A65" fill-opacity="0.8" height="66" rx="5" width="14" x="16" y="74"></rect>
+<text fill="#8E8E93" font-family="Inter" font-size="10" font-weight="500" text-anchor="middle" x="15" y="154">Aug</text>
+</g>
+<!-- Sep -->
+<g transform="translate(218, 0)">
+<rect fill="#10B981" fill-opacity="0.85" height="110" rx="5" width="14" x="0" y="30"></rect>
+<rect fill="#E40A65" fill-opacity="0.8" height="75" rx="5" width="14" x="16" y="65"></rect>
+<text fill="#8E8E93" font-family="Inter" font-size="10" font-weight="500" text-anchor="middle" x="15" y="154">Sep</text>
+</g>
+<!-- Oct (Active / Highlighted) -->
+<g transform="translate(270, 0)">
+<!-- Focus Pill Aura -->
+<rect fill="#B7004F" fill-opacity="0.06" height="134" rx="10" width="38" x="-4" y="10"></rect>
+<rect fill="#10B981" height="116" rx="5" width="14" x="0" y="24"></rect>
+<rect fill="#B7004F" height="82" rx="5" width="14" x="16" y="58"></rect>
+<!-- Active Label Indicator -->
+<rect fill="#B7004F" height="14" rx="7" width="22" x="4" y="144"></rect>
+<text fill="#FFFFFF" font-family="Inter" font-size="9" font-weight="700" text-anchor="middle" x="15" y="154">Oct</text>
+</g>
+</svg>
+</div>
+</div>
+<!-- Category Breakdown & Donut Chart -->
+<div class="bg-surface-container-lowest rounded-[22px] p-space-lg shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+<div class="flex items-center justify-between">
+<div>
+<h3 class="font-title-3 text-title-3 text-on-surface">Where your money went</h3>
+<p class="font-footnote text-footnote text-secondary mt-0.5">5 expense categories</p>
+</div>
+<span class="font-headline text-headline text-on-surface">₹41,100</span>
+</div>
+<!-- Donut Visualization -->
+<div class="flex items-center justify-center py-5">
+<div class="relative w-44 h-44 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90 transform" viewbox="0 0 160 160">
+<!-- Background track -->
+<circle cx="80" cy="80" fill="transparent" r="62" stroke="#F4F3F8" stroke-width="18"></circle>
+<!-- Slices: Circumference = 2 * PI * 62 = ~389.56 -->
+<!-- Food 38% = 148 -->
+<circle cx="80" cy="80" fill="transparent" r="62" stroke="#B7004F" stroke-dasharray="148 242" stroke-dashoffset="0" stroke-linecap="round" stroke-width="18"></circle>
+<!-- Rent 28% = 109 -->
+<circle cx="80" cy="80" fill="transparent" r="62" stroke="#4C4ACA" stroke-dasharray="109 281" stroke-dashoffset="-152" stroke-linecap="round" stroke-width="18"></circle>
+<!-- Shopping 16% = 62 -->
+<circle cx="80" cy="80" fill="transparent" r="62" stroke="#F59E0B" stroke-dasharray="62 328" stroke-dashoffset="-264" stroke-linecap="round" stroke-width="18"></circle>
+<!-- Transit 11% = 43 -->
+<circle cx="80" cy="80" fill="transparent" r="62" stroke="#0284C7" stroke-dasharray="43 347" stroke-dashoffset="-329" stroke-linecap="round" stroke-width="18"></circle>
+<!-- Entertainment 7% = 27 -->
+<circle cx="80" cy="80" fill="transparent" r="62" stroke="#10B981" stroke-dasharray="27 363" stroke-dashoffset="-374" stroke-linecap="round" stroke-width="18"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-caption text-caption text-secondary font-medium">Largest</span>
+<span class="font-headline text-headline text-on-surface">Food</span>
+<span class="font-caption text-caption text-primary font-bold">38%</span>
+</div>
+</div>
+</div>
+<!-- Category Inset List -->
+<div class="space-y-space-md pt-2">
+<!-- 1. Food & Dining -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-primary-fixed/60 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">restaurant</span>
+</div>
+<div>
+<p class="font-headline text-headline text-on-surface">Food &amp; Dining</p>
+<p class="font-caption text-caption text-secondary">38% of outflow</p>
+</div>
+</div>
+<span class="font-headline text-headline text-on-surface">₹15,600</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 38%;"></div>
+</div>
+</div>
+<!-- 2. Rent & Bills -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[18px]">home</span>
+</div>
+<div>
+<p class="font-headline text-headline text-on-surface">Rent &amp; Bills</p>
+<p class="font-caption text-caption text-secondary">28% of outflow</p>
+</div>
+</div>
+<span class="font-headline text-headline text-on-surface">₹11,500</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-tertiary rounded-full" style="width: 28%;"></div>
+</div>
+</div>
+<!-- 3. Shopping -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+<span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+</div>
+<div>
+<p class="font-headline text-headline text-on-surface">Shopping</p>
+<p class="font-caption text-caption text-secondary">16% of outflow</p>
+</div>
+</div>
+<span class="font-headline text-headline text-on-surface">₹6,570</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-amber-500 rounded-full" style="width: 16%;"></div>
+</div>
+</div>
+<!-- 4. Transit & Travel -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center text-sky-700">
+<span class="material-symbols-outlined text-[18px]">directions_car</span>
+</div>
+<div>
+<p class="font-headline text-headline text-on-surface">Transit &amp; Travel</p>
+<p class="font-caption text-caption text-secondary">11% of outflow</p>
+</div>
+</div>
+<span class="font-headline text-headline text-on-surface">₹4,520</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-sky-600 rounded-full" style="width: 11%;"></div>
+</div>
+</div>
+<!-- 5. Entertainment -->
+<div class="space-y-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center space-x-2.5">
+<div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
+<span class="material-symbols-outlined text-[18px]">local_activity</span>
+</div>
+<div>
+<p class="font-headline text-headline text-on-surface">Entertainment</p>
+<p class="font-caption text-caption text-secondary">7% of outflow</p>
+</div>
+</div>
+<span class="font-headline text-headline text-on-surface">₹2,910</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full bg-emerald-500 rounded-full" style="width: 7%;"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Daily Spending Area Curve -->
+<div class="bg-surface-container-lowest rounded-[22px] p-space-lg shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+<div class="flex items-start justify-between">
+<div>
+<h3 class="font-title-3 text-title-3 text-on-surface">Daily spending</h3>
+<p class="font-footnote text-footnote text-secondary mt-0.5">Peak on Oct 18 • Flight Booking</p>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed text-primary font-caption text-caption font-bold">31 Days</span>
+</div>
+<div class="relative w-full pt-6">
+<svg class="w-full h-40 overflow-visible" viewbox="0 0 320 120">
+<defs>
+<lineargradient id="pinkGradientArea" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#b7004f" stop-opacity="0.28"></stop>
+<stop offset="100%" stop-color="#b7004f" stop-opacity="0.0"></stop>
+</lineargradient>
+</defs>
+<!-- Area Curve -->
+<path d="M 0 100 
+                 C 20 95, 30 85, 45 88 
+                 C 60 92, 75 75, 95 80 
+                 C 115 85, 130 95, 150 90 
+                 C 165 85, 175 18, 185 18 
+                 C 195 18, 205 92, 220 85 
+                 C 235 78, 250 82, 270 70 
+                 C 285 60, 305 75, 320 72 
+                 L 320 115 L 0 115 Z" fill="url(#pinkGradientArea)"></path>
+<!-- Line Stroke -->
+<path d="M 0 100 
+                 C 20 95, 30 85, 45 88 
+                 C 60 92, 75 75, 95 80 
+                 C 115 85, 130 95, 150 90 
+                 C 165 85, 175 18, 185 18 
+                 C 195 18, 205 92, 220 85 
+                 C 235 78, 250 82, 270 70 
+                 C 285 60, 305 75, 320 72" fill="none" stroke="#b7004f" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Peak Day Marker Pin -->
+<g transform="translate(185, 18)">
+<!-- Indicator ring -->
+<circle cx="0" cy="0" fill="#FFFFFF" r="6" stroke="#b7004f" stroke-width="2.5"></circle>
+<circle cx="0" cy="0" fill="#b7004f" r="2.5"></circle>
+<!-- Floating Pill Tag -->
+<g transform="translate(0, -22)">
+<rect fill="#1A1B1F" height="20" rx="10" width="56" x="-28" y="-12"></rect>
+<text fill="#FFFFFF" font-family="Inter" font-size="10" font-weight="700" text-anchor="middle" x="0" y="2">₹4,850</text>
+</g>
+</g>
+</svg>
+<!-- X-Axis Labels -->
+<div class="flex justify-between items-center text-secondary font-caption text-caption pt-2 px-1">
+<span>Oct 1</span>
+<span>Oct 8</span>
+<span>Oct 15</span>
+<span class="text-primary font-bold">Oct 18</span>
+<span>Oct 22</span>
+<span>Oct 31</span>
+</div>
+</div>
+</div>
+<!-- Smart Insights Section -->
+<div class="bg-surface-container-lowest rounded-[22px] p-space-lg shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+<div class="flex items-center space-x-2 mb-space-md">
+<div class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+</div>
+<h3 class="font-title-3 text-title-3 text-on-surface">Putu Insights</h3>
+</div>
+<div class="space-y-space-sm">
+<!-- Insight 1 -->
+<div class="p-3.5 rounded-2xl bg-surface-container-low flex items-start space-x-3">
+<div class="w-8 h-8 rounded-xl bg-surface-container-lowest flex-shrink-0 flex items-center justify-center text-amber-500 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">lightbulb</span>
+</div>
+<div>
+<p class="font-headline text-headline text-on-surface">Weekend spending drop</p>
+<p class="font-subheadline text-subheadline text-on-surface-variant mt-0.5">You spent <span class="font-semibold text-emerald-600">42% less</span> on dining out this weekend compared to your normal run rate.</p>
+</div>
+</div>
+<!-- Insight 2 -->
+<div class="p-3.5 rounded-2xl bg-surface-container-low flex items-start space-x-3">
+<div class="w-8 h-8 rounded-xl bg-surface-container-lowest flex-shrink-0 flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[18px]">trending_up</span>
+</div>
+<div>
+<p class="font-headline text-headline text-on-surface">Savings speedup</p>
+<p class="font-subheadline text-subheadline text-on-surface-variant mt-0.5">On track to fulfill your <span class="font-semibold text-on-surface">₹25,000 safety fund</span> 2 weeks ahead of your timeline.</p>
+</div>
+</div>
+<!-- Insight 3 -->
+<div class="p-3.5 rounded-2xl bg-surface-container-low flex items-start space-x-3">
+<div class="w-8 h-8 rounded-xl bg-surface-container-lowest flex-shrink-0 flex items-center justify-center text-emerald-600 shadow-sm">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+<div>
+<p class="font-headline text-headline text-on-surface">Grocery optimization</p>
+<p class="font-subheadline text-subheadline text-on-surface-variant mt-0.5">Consolidated weekly bulk shopping saved <span class="font-semibold text-primary">₹1,800</span> in impulse mini-purchases.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Client interactive highlight for active navigation tab in host shell -->
+<script>
+  (function() {
+    const reportNavBtn = document.querySelector('nav a[data-path="report"]');
+    if (reportNavBtn) {
+      reportNavBtn.classList.remove('text-secondary');
+      reportNavBtn.classList.add('text-primary');
+      const icon = reportNavBtn.querySelector('.material-symbols-outlined');
+      if (icon) {
+        icon.style.fontVariationSettings = "'FILL' 1";
+      }
+    }
+  })();
+</script></main><nav class="fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-container-lowest/80 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.04)]" data-active-classes="text-primary"><div class="relative flex justify-around items-center h-16 px-gutter-mobile max-w-md mx-auto"><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-secondary hover:text-on-surface transition-colors" data-path="home" href="#"><span class="material-symbols-outlined text-[24px]">home</span><span class="font-caption text-caption mt-space-xs">Home</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-secondary hover:text-on-surface transition-colors" data-path="wallet" href="#"><span class="material-symbols-outlined text-[24px]">account_balance_wallet</span><span class="font-caption text-caption mt-space-xs">Wallet</span></a><div class="relative flex items-center justify-center -top-5"><a class="flex items-center justify-center w-14 h-14 rounded-full bg-primary-container text-on-primary-container shadow-[0_8px_20px_rgba(228,10,101,0.35)] active:scale-95 transition-transform" data-path="add-expense" href="#"><span class="material-symbols-outlined text-[30px]">add</span></a></div><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-secondary hover:text-on-surface transition-colors" data-path="planning" href="#"><span class="material-symbols-outlined text-[24px]">calendar_month</span><span class="font-caption text-caption mt-space-xs">Planning</span></a><a class="flex flex-col items-center justify-center min-w-[56px] h-12 text-secondary hover:text-on-surface transition-colors" data-path="report" href="#"><span class="material-symbols-outlined text-[24px]">bar_chart</span><span class="font-caption text-caption mt-space-xs">Report</span></a></div></nav></body></html>
