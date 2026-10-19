@@ -18,6 +18,7 @@ import Animated, {
   FadeInUp,
 } from 'react-native-reanimated';
 import { useAuth, getFriendlyAuthErrorMessage } from '../../src/lib/auth';
+import { supabase } from '../../src/lib/supabase';
 import { AuthHero, FocusedField } from '../../src/components/AuthHero';
 import {
   EyeIcon,
@@ -31,7 +32,7 @@ import { theme } from '../../src/theme';
 export default function SignUpScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { signUp, signInAnonymously, isAnonymous } = useAuth();
+  const { signUp, signInAnonymously, isAnonymous, setIsUpgrading } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -80,33 +81,83 @@ export default function SignUpScreen() {
       setIsLoading(true);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
-      const response = await signUp(name, email, password);
+      if (isAnonymous) {
+        // Capture real counts for the guest before calling Supabase
+        const [
+          { count: walletsCount },
+          { count: txCount },
+          { count: goalsCount },
+          { count: categoriesCount },
+          { data: walletsData },
+          { data: goalsData },
+        ] = await Promise.all([
+          supabase.from('wallets').select('*', { count: 'exact', head: true }),
+          supabase.from('transactions').select('*', { count: 'exact', head: true }),
+          supabase.from('goals').select('*', { count: 'exact', head: true }),
+          supabase.from('categories').select('*', { count: 'exact', head: true }),
+          supabase.from('wallets').select('name').order('created_at', { ascending: true }),
+          supabase.from('goals').select('name').order('created_at', { ascending: true }),
+        ]);
 
-      setSuccessTrigger((prev) => prev + 1);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        const preWallets = walletsCount ?? 0;
+        const preTx = txCount ?? 0;
+        const preGoals = goalsCount ?? 0;
+        const preCategories = categoriesCount ?? 0;
+        const walletNames = walletsData?.map((w) => w.name) || [];
+        const goalNames = goalsData?.map((g) => g.name) || [];
 
-      // Check if session exists immediately or if confirmation email was dispatched
-      const userObj = response.data?.user;
-      const sessionObj = 'session' in response.data ? (response.data as any).session : null;
+        // Set upgrading flag so the route gate does not automatically redirect to tabs
+        setIsUpgrading(true);
 
-      if (!sessionObj && userObj && !userObj.confirmed_at && !userObj.email_confirmed_at) {
-        Alert.alert(
-          'Confirmation Email Sent',
-          `We have sent a verification email to ${email.trim()}. Please check your inbox to activate your account and complete setup.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => router.replace('/(auth)/sign-in'),
-            },
-          ]
-        );
+        // Call existing updateUser upgrade via signUp
+        await signUp(name, email, password);
+
+        setSuccessTrigger((prev) => prev + 1);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+        // Only on success go to the Sync screen with replace (cannot go back to sign-up)
+        router.replace({
+          pathname: '/upgrade-sync',
+          params: {
+            email: email.trim(),
+            name: name.trim(),
+            preWalletsCount: String(preWallets),
+            preTxCount: String(preTx),
+            preGoalsCount: String(preGoals),
+            preCategoriesCount: String(preCategories),
+            walletNames: JSON.stringify(walletNames),
+            goalNames: JSON.stringify(goalNames),
+          },
+        });
       } else {
-        // Logged in directly or upgraded
-        setTimeout(() => {
-          router.replace('/(tabs)');
-        }, 350);
+        const response = await signUp(name, email, password);
+
+        setSuccessTrigger((prev) => prev + 1);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+        // Check if session exists immediately or if confirmation email was dispatched
+        const userObj = response.data?.user;
+        const sessionObj = 'session' in response.data ? (response.data as any).session : null;
+
+        if (!sessionObj && userObj && !userObj.confirmed_at && !userObj.email_confirmed_at) {
+          Alert.alert(
+            'Confirmation Email Sent',
+            `We have sent a verification email to ${email.trim()}. Please check your inbox to activate your account and complete setup.`,
+            [
+              {
+                text: 'OK',
+                onPress: () => router.replace('/(auth)/sign-in'),
+              },
+            ]
+          );
+        } else {
+          setTimeout(() => {
+            router.replace('/(tabs)');
+          }, 350);
+        }
       }
     } catch (err: any) {
+      setIsUpgrading(false);
       const friendlyMsg = getFriendlyAuthErrorMessage(err);
       setErrorMessage(friendlyMsg);
       setErrorTrigger((prev) => prev + 1);
@@ -175,6 +226,13 @@ export default function SignUpScreen() {
 
         {/* Primary Elevated Card */}
         <View style={styles.cardContainer}>
+          {isAnonymous && (
+            <View style={styles.stepPill}>
+              <View style={styles.stepPillDot} />
+              <Text style={styles.stepPillText}>STEP 1 OF 2 • CREATE ACCOUNT</Text>
+            </View>
+          )}
+
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Create your account</Text>
             <Text style={styles.cardSubtitle}>
@@ -282,7 +340,7 @@ export default function SignUpScreen() {
             <View style={styles.trustBadgeRow}>
               <ShieldCheckIcon size={16} color={theme.colors.primary} />
               <Text style={styles.trustBadgeText}>
-                Bank-grade encryption & private by design
+                Private by design • Safe cloud backup
               </Text>
             </View>
 
@@ -300,35 +358,41 @@ export default function SignUpScreen() {
                 <ActivityIndicator size="small" color={theme.colors.white} />
               ) : (
                 <View style={styles.buttonContent}>
-                  <Text style={styles.primaryButtonText}>Sign up</Text>
+                  <Text style={styles.primaryButtonText}>
+                    {isAnonymous ? 'Create account & keep my data' : 'Sign up'}
+                  </Text>
                   <ArrowForwardIcon size={18} color={theme.colors.white} />
                 </View>
               )}
             </TouchableOpacity>
 
-            {/* Centered Divider */}
-            <View style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            {/* Secondary Continue as Guest */}
-            <TouchableOpacity
-              style={styles.guestButton}
-              onPress={handleGuestSignIn}
-              disabled={isLoading || isGuestLoading}
-              activeOpacity={0.85}
-            >
-              {isGuestLoading ? (
-                <ActivityIndicator size="small" color={theme.colors.onSurface} />
-              ) : (
-                <View style={styles.buttonContent}>
-                  <PersonOutlineIcon size={18} color={theme.colors.secondary} />
-                  <Text style={styles.guestButtonText}>Continue as guest</Text>
+            {!isAnonymous && (
+              <>
+                {/* Centered Divider */}
+                <View style={styles.dividerRow}>
+                  <View style={styles.dividerLine} />
+                  <Text style={styles.dividerText}>or</Text>
+                  <View style={styles.dividerLine} />
                 </View>
-              )}
-            </TouchableOpacity>
+
+                {/* Secondary Continue as Guest */}
+                <TouchableOpacity
+                  style={styles.guestButton}
+                  onPress={handleGuestSignIn}
+                  disabled={isLoading || isGuestLoading}
+                  activeOpacity={0.85}
+                >
+                  {isGuestLoading ? (
+                    <ActivityIndicator size="small" color={theme.colors.onSurface} />
+                  ) : (
+                    <View style={styles.buttonContent}>
+                      <PersonOutlineIcon size={18} color={theme.colors.secondary} />
+                      <Text style={styles.guestButtonText}>Continue as guest</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
 
             {/* Footer Navigation Link */}
             <View style={styles.footerRow}>
@@ -401,6 +465,29 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
     marginTop: 6,
     ...theme.shadows.card,
+  },
+  stepPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: theme.radii.pill,
+    backgroundColor: theme.colors.primaryFixed,
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+  },
+  stepPillDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.primary,
+  },
+  stepPillText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: theme.colors.onSurfaceVariant,
+    letterSpacing: 0.8,
   },
   cardHeader: {
     marginBottom: 20,
