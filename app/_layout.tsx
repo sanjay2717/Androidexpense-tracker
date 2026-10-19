@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import {
   useFonts,
   Inter_400Regular,
@@ -12,31 +12,22 @@ import {
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import { LoadingProvider, useLoading } from '../src/context/LoadingContext';
-import { initializeAuthSession } from '../src/lib/supabase';
+import { AuthProvider, useAuth } from '../src/lib/auth';
+import { queryClient } from '../src/lib/queryClient';
 import { LoadingScreen } from '../src/components/LoadingScreen';
 import { theme } from '../src/theme';
 
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: '(auth)',
 };
 
 // Prevent native splash screen from hiding prematurely
 SplashScreen.preventAutoHideAsync().catch(() => {});
-
-// Initialize TanStack Query client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 30, // 30 seconds
-      retry: 2,
-    },
-  },
-});
 
 function RootLayoutContent() {
   const [fontsLoaded, fontError] = useFonts({
@@ -47,7 +38,9 @@ function RootLayoutContent() {
     Inter_800ExtraBold,
   });
 
-  const [sessionInitialized, setSessionInitialized] = useState(false);
+  const { isPermanentUser, isGuestActive, isLoading: isAuthLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
   const { isLoadingVisible, loadingKey, handleLoadingFinish } = useLoading();
 
   // Immediately release the native OS splash screen so Putu's branded loading screen is visible
@@ -55,27 +48,20 @@ function RootLayoutContent() {
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
-  // Initialize anonymous session on app start
-  useEffect(() => {
-    async function init() {
-      try {
-        await initializeAuthSession();
-      } catch (e) {
-        console.warn('Auth initialization warning:', e);
-      } finally {
-        setSessionInitialized(true);
-      }
-    }
-    init();
-  }, []);
+  const isAllowedInTabs = isPermanentUser || isGuestActive;
 
-  // Safety timer: ensures app never stays stuck on loading if network or fonts hang
+  // Route gating: redirect based on auth status
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSessionInitialized(true);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
+    if (isAuthLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAllowedInTabs && !inAuthGroup) {
+      router.replace('/(auth)/sign-in');
+    } else if (isAllowedInTabs && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [isAllowedInTabs, isAuthLoading, segments, router]);
 
   useEffect(() => {
     if (fontError) {
@@ -83,7 +69,8 @@ function RootLayoutContent() {
     }
   }, [fontError]);
 
-  const isAppReady = (fontsLoaded || !!fontError) && sessionInitialized;
+  // Branded splash stays until fonts AND the session restore finish
+  const isAppReady = (fontsLoaded || !!fontError) && !isAuthLoading;
 
   return (
     <>
@@ -96,6 +83,7 @@ function RootLayoutContent() {
           animation: 'fade',
         }}
       >
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="add"
@@ -115,9 +103,16 @@ function RootLayoutContent() {
             headerTitleStyle: { fontWeight: '700' },
           }}
         />
+        <Stack.Screen
+          name="profile"
+          options={{
+            headerShown: false,
+            animation: 'slide_from_right',
+          }}
+        />
       </Stack>
 
-      {/* Loading Screen with 2D Zen character, Reanimated physics and random 2-3s duration */}
+      {/* Branded loading screen remains until fonts and auth session restore complete */}
       {isLoadingVisible && (
         <LoadingScreen
           key={loadingKey}
@@ -133,9 +128,11 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <QueryClientProvider client={queryClient}>
-        <LoadingProvider>
-          <RootLayoutContent />
-        </LoadingProvider>
+        <AuthProvider>
+          <LoadingProvider>
+            <RootLayoutContent />
+          </LoadingProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );
@@ -144,6 +141,6 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFC',
+    backgroundColor: theme.colors.background,
   },
 });
