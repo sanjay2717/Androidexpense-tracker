@@ -69,31 +69,20 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 /**
- * Initializes anonymous authentication session if Supabase is configured and no active session exists.
+ * Fetches the current session without automatically creating an anonymous user.
  */
-export async function initializeAuthSession() {
+export async function getExistingAuthSession() {
   if (!isSupabaseConfigured) {
-    console.warn(
-      '⚠️ EXPO_PUBLIC_SUPABASE_URL is missing or empty in .env. Running in offline/preview mode.'
-    );
     return null;
   }
-
   try {
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-      console.warn('Error fetching Supabase session:', sessionError.message);
-    }
-    if (!session) {
-      const { data, error } = await supabase.auth.signInAnonymously();
-      if (error) {
-        console.warn('Anonymous sign-in error:', error.message);
-      }
-      return data?.session ?? null;
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error) {
+      console.warn('Error fetching Supabase session:', error.message);
     }
     return session;
   } catch (err) {
-    console.warn('Unexpected error during auth initialization:', err);
+    console.warn('Unexpected error checking auth session:', err);
     return null;
   }
 }
