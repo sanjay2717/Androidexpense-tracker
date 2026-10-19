@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@500;600;700;800&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { colors: { "on-secondary": "#ffffff", "secondary-fixed": "#e2e2e2", "on-tertiary-fixed": "#0c006a", "primary": "#FF2D78", "on-tertiary-container": "#fffbff", "primary-fixed-dim": "#ffb1c0", "on-secondary-container": "#646464", "tertiary": "#4c4aca", "surface-container": "#eeedf3", "on-secondary-fixed": "#1b1b1b", "error": "#ba1a1a", "surface-bright": "#faf9fe", "surface-variant": "#e3e2e7", "secondary": "#5e5e5e", "tertiary-container": "#6664e4", "on-error": "#ffffff", "on-tertiary-fixed-variant": "#3631b4", "outline-variant": "#e4bdc3", "on-background": "#1a1b1f", "primary-fixed": "#ffd9df", "primary-container": "#e40a65", "background": "#FAF8F5", "inverse-primary": "#ffb1c0", "tertiary-fixed": "#e2dfff", "surface-container-high": "#e9e7ed", "surface-container-lowest": "#ffffff", "on-error-container": "#93000a", "on-primary-fixed-variant": "#90003d", "outline": "#8f6f74", "on-tertiary": "#ffffff", "on-primary-container": "#fffbff", "on-secondary-fixed-variant": "#474747", "on-surface-variant": "#5b3f44", "inverse-on-surface": "#f1f0f5", "tertiary-fixed-dim": "#c2c1ff", "on-primary": "#ffffff", "surface-tint": "#bc0051", "surface": "#faf9fe", "on-primary-fixed": "#3f0017", "surface-dim": "#dad9df", "secondary-fixed-dim": "#c6c6c6", "surface-container-low": "#f4f3f8", "secondary-container": "#e2e2e2", "error-container": "#ffdad6", "on-surface": "#1a1b1f", "surface-container-highest": "#e3e2e7", "inverse-surface": "#2f3034" }, borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, spacing: { "margin": "2rem", "margin-mobile": "1rem", "space-xs": "0.25rem", "space-xl": "2.5rem", "space-md": "1rem", "gutter-mobile": "0.75rem", "space-lg": "1.5rem", "space-sm": "0.5rem", "gutter": "1rem" }, fontFamily: { "script": ["Caveat", "cursive"], "sans-display": ["'Plus Jakarta Sans'", "sans-serif"], "title-3": ["Inter"], "title-1": ["Inter"], "caption": ["Inter"], "body": ["Inter"], "headline": ["Inter"], "footnote": ["Inter"], "numeral-hero-mobile": ["Inter"], "title-2": ["Inter"], "display-large-mobile": ["Inter"], "display-large": ["Inter"], "subheadline": ["Inter"], "callout": ["Inter"], "numeral-hero": ["Inter"] } } } };</script><style>@layer base{html,body{width:100%;min-height:100%;margin:0;padding:0;}body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}}::-webkit-scrollbar{display:none;}
+    body {
+      min-height: max(884px, 100dvh);
+    }
+    @keyframes floatOrb {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-6px) scale(1.04); }
+    }
+    @keyframes auraPulse {
+      0%, 100% { opacity: 0.28; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.14); }
+    }
+    @keyframes beadShimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(260%); }
+    }
+    /* Peeking Left Character */
+    @keyframes peekLeftAnim {
+      0% { transform: translateX(-48px) rotate(-8deg); }
+      60% { transform: translateX(4px) rotate(2deg); }
+      80% { transform: translateX(-2px) rotate(0deg); }
+      100% { transform: translateX(0px) rotate(0deg); }
+    }
+    @keyframes bobLeftLoop {
+      0%, 100% { transform: translateX(0px) translateY(0px) rotate(0deg); }
+      50% { transform: translateX(2px) translateY(-5px) rotate(2deg); }
+    }
+    /* Peeking Right Character */
+    @keyframes peekRightAnim {
+      0% { transform: translateX(48px) rotate(8deg); }
+      60% { transform: translateX(-4px) rotate(-2deg); }
+      80% { transform: translateX(2px) rotate(0deg); }
+      100% { transform: translateX(0px) rotate(0deg); }
+    }
+    @keyframes bobRightLoop {
+      0%, 100% { transform: translateX(0px) translateY(0px) rotate(0deg); }
+      50% { transform: translateX(-2px) translateY(-4px) rotate(-2deg); }
+    }
+    /* Pencil Writing / Sketching Animation */
+    @keyframes pencilDrawMotion {
+      0% {
+        transform: translate(-18px, 12px) rotate(-26deg);
+      }
+      25% {
+        transform: translate(24px, 14px) rotate(-20deg);
+      }
+      50% {
+        transform: translate(72px, 8px) rotate(-28deg);
+      }
+      75% {
+        transform: translate(118px, 14px) rotate(-22deg);
+      }
+      90% {
+        transform: translate(130px, 16px) rotate(-18deg) scale(1.02);
+      }
+      100% {
+        transform: translate(-18px, 12px) rotate(-26deg);
+      }
+    }
+    /* Underline Stroke Draw Animation */
+    @keyframes drawStroke {
+      0% { stroke-dashoffset: 200; opacity: 0.3; }
+      40% { opacity: 1; }
+      85% { stroke-dashoffset: 0; opacity: 1; }
+      96% { opacity: 1; }
+      100% { stroke-dashoffset: 0; opacity: 0.85; }
+    }
+    /* Organic freehand float */
+    @keyframes softSway {
+      0%, 100% { transform: translateY(0px) rotate(-2.5deg); }
+      50% { transform: translateY(-4px) rotate(-1.5deg); }
+    }
+    /* Sparkle float animation */
+    @keyframes twinklePulse {
+      0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+      50% { transform: scale(1.22) rotate(18deg); opacity: 1; }
+    }
+    .animate-float-orb { animation: floatOrb 3.2s ease-in-out infinite; }
+    .animate-halo { animation: auraPulse 4s ease-in-out infinite; }
+    .animate-shimmer { animation: beadShimmer 1.8s ease-in-out infinite; }
+    .animate-peek-left { animation: peekLeftAnim 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) 0.3s both; }
+    .animate-bob-left { animation: bobLeftLoop 4s ease-in-out infinite 1.2s; }
+    .animate-peek-right { animation: peekRightAnim 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) 0.45s both; }
+    .animate-bob-right { animation: bobRightLoop 4.2s ease-in-out infinite 1.35s; }
+    .animate-pencil { animation: pencilDrawMotion 4.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; }
+    .animate-under-stroke {
+      stroke-dasharray: 200;
+      animation: drawStroke 4.2s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+    }
+    .animate-soft-sway { animation: softSway 4.8s ease-in-out infinite; }
+    .animate-twinkle { animation: twinklePulse 2.4s ease-in-out infinite; }
+  </style>
+</head><body class="min-h-screen bg-[#FAF8F5] text-on-surface font-body flex flex-col relative overflow-x-hidden selection:bg-pink-100 selection:text-pink-600"><div class="fixed top-0 inset-x-0 z-50 pt-safe pointer-events-none"><div class="h-11 px-space-lg flex items-center justify-between text-neutral-900"><span class="font-headline text-footnote font-semibold select-none">9:41</span><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-[16px]">signal_cellular_alt</span><span class="material-symbols-outlined text-[16px]">wifi</span><span class="material-symbols-outlined text-[20px]">battery_full</span></div></div></div><main class="flex-1 flex flex-col relative w-full pt-safe pb-safe bg-[#FAF8F5] justify-between overflow-hidden"><!-- Tactile authentic organic paper dot-grid background -->
+<div class="absolute inset-0 pointer-events-none bg-[radial-gradient(#d8c9be_1.2px,transparent_1.2px)] [background-size:24px_24px] opacity-45"></div>
+<!-- Ambient Warm Pink Blush Spotlights (blended directly into canvas) -->
+<div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-gradient-to-tr from-[#FF2D78]/15 via-[#FFA382]/12 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute bottom-1/4 right-0 w-72 h-72 bg-gradient-to-bl from-[#FF2D78]/10 via-amber-200/15 to-transparent rounded-full blur-3xl pointer-events-none"></div>
+<!-- 2D MINIMALIST CHARACTER 1: Peeking out from LEFT edge -->
+<div class="absolute -left-1 top-[28%] z-30 pointer-events-none select-none">
+<div class="animate-peek-left">
+<div class="animate-bob-left">
+<svg class="w-16 h-24 drop-shadow-[0_4px_12px_rgba(255,45,120,0.12)]" fill="none" viewbox="0 0 54 80" xmlns="http://www.w3.org/2000/svg">
+<!-- Peeking body silhouette tucked on edge -->
+<path d="M-6 80 C6 74 14 62 14 42 C14 26 8 16 -6 12" fill="#FAF8F5" stroke="#1F1D24" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Head peeking rounded curve -->
+<path d="M-4 16 C8 16 26 23 26 42 C26 59 10 68 -4 68" fill="#FAF8F5" stroke="#1F1D24" stroke-linecap="round" stroke-width="2.6"></path>
+<!-- Soft Pink Blush under eye -->
+<ellipse cx="14" cy="49" fill="#FF2D78" opacity="0.6" rx="3.5" ry="2.2"></ellipse>
+<!-- Cute curious round eye looking into center canvas -->
+<circle cx="15" cy="40" fill="#1F1D24" r="3.2"></circle>
+<circle cx="16.2" cy="38.8" fill="#FFFFFF" r="1.1"></circle>
+<!-- Subtle eyelid / curious brow -->
+<path d="M12 34 C14 32.5 18 33 20 35" stroke="#1F1D24" stroke-linecap="round" stroke-width="1.8"></path>
+<!-- Tiny shy mouth corner -->
+<path d="M16 54 C19 55 21 53 22 52" stroke="#1F1D24" stroke-linecap="round" stroke-width="1.8"></path>
+<!-- Playful hair sprout/antenna popping out -->
+<path d="M16 19 C18 12 24 10 28 13" stroke="#FF2D78" stroke-linecap="round" stroke-width="2.2"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- 2D MINIMALIST CHARACTER 2: Peeking out from RIGHT edge -->
+<div class="absolute -right-1 top-[56%] z-30 pointer-events-none select-none">
+<div class="animate-peek-right">
+<div class="animate-bob-right">
+<svg class="w-16 h-24 drop-shadow-[0_4px_12px_rgba(255,45,120,0.12)]" fill="none" viewbox="0 0 54 80" xmlns="http://www.w3.org/2000/svg">
+<!-- Peeking body silhouette on right boundary -->
+<path d="M60 80 C48 74 40 62 40 42 C40 26 46 16 60 12" fill="#FAF8F5" stroke="#1F1D24" stroke-linecap="round" stroke-width="2.5"></path>
+<!-- Head peeking rounded curve -->
+<path d="M58 16 C46 16 28 23 28 42 C28 59 44 68 58 68" fill="#FAF8F5" stroke="#1F1D24" stroke-linecap="round" stroke-width="2.6"></path>
+<!-- Playful rounded wire spectacles on character -->
+<circle cx="39" cy="41" fill="rgba(255,45,120,0.06)" r="5.5" stroke="#1F1D24" stroke-width="1.8"></circle>
+<path d="M44.5 41 L52 41" stroke="#1F1D24" stroke-width="1.6"></path>
+<!-- Eye smiling happily inside glasses -->
+<path d="M36.5 41 C37.5 39 40.5 39 41.5 41" stroke="#1F1D24" stroke-linecap="round" stroke-width="2"></path>
+<!-- Soft Pink Blush -->
+<ellipse cx="38" cy="49" fill="#FF2D78" opacity="0.6" rx="3.5" ry="2.2"></ellipse>
+<!-- Warm tiny happy grin -->
+<path d="M35 54 C37 56 40 56 42 54" stroke="#1F1D24" stroke-linecap="round" stroke-width="1.8"></path>
+<!-- Tiny beret / ear accent in accent pink -->
+<path d="M36 18 C33 13 29 14 27 16" stroke="#FF2D78" stroke-linecap="round" stroke-width="2.2"></path>
+</svg>
+</div>
+</div>
+</div>
+<!-- TOP SECTION: Charming 2D Minimalist Hand-Drawn Character (Monoline art matching peeking style, gently meditating/holding a radiant tiny spark) -->
+<div class="w-full pt-10 px-8 flex flex-col items-center relative z-10 select-none">
+<div class="relative flex flex-col items-center animate-float-orb">
+<!-- Ambient Warm Glow behind the character -->
+<div class="absolute -top-3 w-28 h-28 rounded-full bg-gradient-to-tr from-[#FF2D78]/25 via-[#FFA382]/20 to-transparent blur-xl -z-10 animate-halo pointer-events-none"></div>
+<!-- Charming Hand-Drawn 2D Line-Art Character -->
+<svg class="w-24 h-24 text-neutral-800 transition-transform duration-500 hover:scale-105 drop-shadow-[0_4px_16px_rgba(255,45,120,0.15)]" fill="none" viewbox="0 0 96 96" xmlns="http://www.w3.org/2000/svg">
+<!-- Soft Floating Magic Spark / Coin hovering right above palm -->
+<g class="animate-twinkle" transform="translate(48, 22)">
+<!-- Golden pink glowing coin / twinkle spark -->
+<circle cx="0" cy="0" fill="#FF2D78" fill-opacity="0.15" r="7" stroke="#FF2D78" stroke-width="1.5"></circle>
+<circle cx="0" cy="0" fill="#FF2D78" r="3"></circle>
+<!-- Little spark rays -->
+<path d="M0 -11 L0 -8 M0 8 L0 11 M-11 0 L-8 0 M8 0 L11 0" stroke="#FF2D78" stroke-linecap="round" stroke-width="1.6"></path>
+<!-- Mini ₹ currency mark inside spark -->
+<path d="M-1.8 -2.5 L1.8 -2.5 M-1.8 -0.8 L1.5 -0.8 M-1.2 -2.5 C0.5 -2.5 1.5 -1.2 0.8 0.4 L-1.4 0.4 L1.8 3.2" stroke="#FAF8F5" stroke-linecap="round" stroke-linejoin="round" stroke-width="0.9"></path>
+</g>
+<!-- Serene Head outline in clean 2D monoline -->
+<path d="M48 27 C59 27 67 35.5 67 46.5 C67 58 58 66 48 66 C38 66 29 58 29 46.5 C29 35.5 37 27 48 27 Z" fill="#FAF8F5" stroke="#1F1D24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<!-- Playful hair sprout/antenna in accent pink matching left peeking character -->
+<path d="M48 27 C49 19 55 17 58 20" stroke="#FF2D78" stroke-linecap="round" stroke-width="2.4"></path>
+<path d="M47 27 C44 21 38 22 36 24" stroke="#1F1D24" stroke-linecap="round" stroke-width="2"></path>
+<!-- Peaceful, happy closed curved eyes (meditative joy) -->
+<path d="M37.5 45 C39.5 48 42.5 48 44.5 45" stroke="#1F1D24" stroke-linecap="round" stroke-width="2"></path>
+<path d="M51.5 45 C53.5 48 56.5 48 58.5 45" stroke="#1F1D24" stroke-linecap="round" stroke-width="2"></path>
+<!-- Warm vibrant pink blush ovals on cheeks -->
+<ellipse cx="36" cy="51" fill="#FF2D78" opacity="0.65" rx="4" ry="2.4"></ellipse>
+<ellipse cx="60" cy="51" fill="#FF2D78" opacity="0.65" rx="4" ry="2.4"></ellipse>
+<!-- Gentle serene smile -->
+<path d="M45 54 C47 56 49 56 51 54" stroke="#1F1D24" stroke-linecap="round" stroke-width="1.8"></path>
+<!-- Cute comfy seated torso / folded posture with hands cupped gently upward -->
+<!-- Left shoulder & folded arm -->
+<path d="M32 64 C26 67 22 74 22 83 C28 85 36 86 48 86 C60 86 68 85 74 83 C74 74 70 67 64 64" fill="#FAF8F5" stroke="#1F1D24" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<!-- Striped cheerful collar accent -->
+<path d="M42 66 C45 68 51 68 54 66" stroke="#FF2D78" stroke-linecap="round" stroke-width="2.2"></path>
+<!-- Cupped resting hands holding the spark energy -->
+<path d="M38 74 C41 77 46 78 48 78 C50 78 55 77 58 74" stroke="#1F1D24" stroke-linecap="round" stroke-width="2"></path>
+<!-- Gentle thumb & fingers tuck -->
+<path d="M43 72 C45 74 47 75 48 75 C49 75 51 74 53 72" stroke="#1F1D24" stroke-linecap="round" stroke-width="1.6"></path>
+<!-- Cross-legged meditating base line curve -->
+<path d="M26 83 C34 81 62 81 70 83" stroke="#1F1D24" stroke-linecap="round" stroke-width="2.2"></path>
+</svg>
+</div>
+</div>
+<!-- UPPER-RIGHT FREEHAND ANNOTATION: Drawn directly on canvas, zero container/card -->
+<div class="absolute right-5 top-36 z-20 pointer-events-none select-none flex flex-col items-end rotate-[5deg]">
+<div class="flex items-center gap-1.5 text-neutral-800 font-script font-bold text-[21px] tracking-wide leading-none">
+<span class="text-[#FF2D78] font-sans font-bold text-base -translate-y-[1px]">●</span>
+<span class="text-neutral-500 font-medium text-lg">₹</span>
+<span class="text-neutral-800">budget safe</span>
+<span class="text-[#FF2D78] text-[20px] font-normal">✨</span>
+</div>
+<!-- Subtle hand-drawn curved arrow pointing playfully downward -->
+<svg class="w-14 h-7 text-[#FF2D78]/70 mt-0.5 mr-2 -rotate-12" fill="none" viewbox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 6 C24 8, 48 11, 49 22" stroke="currentColor" stroke-dasharray="3 3" stroke-linecap="round" stroke-width="1.8"></path>
+<path d="M44 18 L50 23 L53 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"></path>
+</svg>
+</div>
+<!-- CENTER FOCAL: Large Connected Cursive 'Putu' Script + Hand holding pencil actively sketching -->
+<div class="relative flex flex-col items-center justify-center my-auto z-20 px-4">
+<!-- Glowing blush aura behind script -->
+<div class="absolute w-72 h-44 rounded-full pointer-events-none -z-10 blur-3xl bg-gradient-to-r from-[#FF2D78]/25 via-[#FF6B6B]/25 to-[#FFA382]/20 animate-halo"></div>
+<div class="relative select-none text-center">
+<!-- Brand cursive logo -->
+<h1 class="font-script text-[102px] leading-[92px] font-bold tracking-tight bg-gradient-to-r from-[#FF2D78] via-[#FF3D85] to-[#FF7A59] bg-clip-text text-transparent drop-shadow-[0_8px_24px_rgba(255,45,120,0.3)] active:scale-95 transition-transform duration-300 cursor-default">
+      Putu
+    </h1>
+<!-- Tactile dynamic underline stroke actively traced by pencil -->
+<div class="relative w-44 h-7 mx-auto -mt-2">
+<svg class="w-44 h-7 text-[#FF2D78]" fill="none" viewbox="0 0 176 28" xmlns="http://www.w3.org/2000/svg">
+<!-- Underline active stroke -->
+<path class="animate-under-stroke" d="M6 14 C48 5, 126 5, 170 12" stroke="currentColor" stroke-linecap="round" stroke-width="3.2"></path>
+<path d="M28 20 C64 16, 120 16, 154 18" opacity="0.6" stroke="#FFA382" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+<!-- HAND HOLDING STYLUS / PENCIL: Smooth fluid motion sketching along the underline -->
+<div class="absolute -top-7 left-3 pointer-events-none z-30 animate-pencil">
+<svg class="w-18 h-18 w-[72px] h-[72px] drop-shadow-[0_6px_14px_rgba(30,20,35,0.18)]" fill="none" viewbox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+<!-- Stylus / Pencil Body -->
+<g transform="rotate(-38 32 36)">
+<!-- Pencil Barrel (Minimalist White / Apple Stylus style with pink tip) -->
+<rect fill="#FFFFFF" height="42" rx="3.2" stroke="#232127" stroke-width="1.8" width="6.5" x="28" y="2"></rect>
+<rect fill="#FAF8F5" height="38" rx="1" width="2" x="28.8" y="4"></rect>
+<!-- Stylus metal / accent band -->
+<rect fill="#FF2D78" height="3" width="6.5" x="28" y="34"></rect>
+<!-- Stylus Tip Cone -->
+<path d="M28 44 L31.25 53 L34.5 44 Z" fill="#232127"></path>
+<!-- Graphite/Active drawing point -->
+<circle cx="31.25" cy="53" fill="#FF2D78" r="1.3"></circle>
+<!-- Delicate Sparkle at the tip -->
+<path d="M31.25 55 L32 58 L31.25 61 L30.5 58 Z" fill="#FF2D78" opacity="0.75"></path>
+</g>
+<!-- 2D Minimalist Hand gripping pencil -->
+<!-- Forefinger arched over barrel -->
+<path d="M42 38 C42 34 37 32 33 34 C29 36 29 41 33 43 C37 45 42 43 42 38 Z" fill="#FAF8F5" stroke="#232127" stroke-linecap="round" stroke-width="2"></path>
+<!-- Thumb resting against stylus -->
+<path d="M48 44 C48 39 43 38 38 41 C35 43 36 48 41 49 C46 50 48 48 48 44 Z" fill="#FAF8F5" stroke="#232127" stroke-linecap="round" stroke-width="2"></path>
+<!-- Delicate knuckle line -->
+<path d="M37 37 C39 36 41 37 42 38" stroke="#232127" stroke-linecap="round" stroke-width="1.5"></path>
+<!-- Soft blush on fingertip -->
+<ellipse cx="34" cy="40" fill="#FF2D78" opacity="0.55" rx="2.5" ry="1.8"></ellipse>
+<ellipse cx="40" cy="45" fill="#FF2D78" opacity="0.55" rx="2.5" ry="1.8"></ellipse>
+</svg>
+</div>
+</div>
+<!-- Subtitle caption -->
+<p class="font-sans-display text-[12px] font-bold tracking-[0.24em] uppercase text-neutral-400 mt-2">
+      Kinetic Finance
+    </p>
+</div>
+</div>
+<!-- BOTTOM SECTION: Freehand Handwritten Note Directly on Canvas (Zero Card/Zero Paper Scrap) -->
+<div class="w-full px-7 pb-4 flex flex-col relative z-20">
+<!-- Freehand Mindful Quote written directly on the paper canvas -->
+<div class="self-start max-w-[290px] relative mb-8 ml-2 pointer-events-none select-none animate-soft-sway">
+<!-- Hand-drawn heart doodle next to cursive line -->
+<div class="flex items-start gap-2.5">
+<div class="flex-1">
+<p class="font-script text-[23px] leading-[27px] text-neutral-800 font-bold tracking-wide">
+          “remember: spend on what brings joy ✨”
+        </p>
+<!-- Freehand handwritten sub-label with subtle graphite look -->
+<div class="flex items-center gap-1.5 mt-1.5">
+<span class="font-script text-[17px] text-[#FF2D78] font-semibold italic">~ daily intention</span>
+<!-- Tiny hand-drawn decorative squiggle -->
+<svg class="w-10 h-2.5 text-[#FF2D78]/70 ml-1" fill="none" viewbox="0 0 42 10" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 5 C8 1, 14 9, 20 5 C26 1, 32 9, 40 5" stroke="currentColor" stroke-linecap="round" stroke-width="1.6"></path>
+</svg>
+</div>
+</div>
+<!-- Freehand sketched glowing heart -->
+<svg class="w-7 h-7 text-[#FF2D78] shrink-0 mt-0.5 animate-pulse drop-shadow-[0_2px_8px_rgba(255,45,120,0.35)]" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24">
+<path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"></path>
+</svg>
+</div>
+</div>
+<!-- Bottom Liquid Animated Loader with Glowing Pink Beads & iOS Bar -->
+<div class="w-full flex flex-col items-center">
+<!-- Liquid Loader Track -->
+<div class="w-44 h-[5px] rounded-full bg-neutral-200/80 p-[1px] relative overflow-hidden mb-7 shadow-inner">
+<!-- Gradient Base Bar -->
+<div class="h-full rounded-full bg-gradient-to-r from-[#FF2D78] via-[#FF5887] to-[#FFA382] transition-all duration-300 relative overflow-hidden" id="splash-progress" style="width: 58%;">
+<!-- Shimmering glowing liquid beads effect moving across -->
+<div class="absolute inset-y-0 w-12 bg-gradient-to-r from-transparent via-white/80 to-transparent animate-shimmer"></div>
+</div>
+<!-- Glowing bead lead dot -->
+<div class="absolute top-1/2 -translate-y-1/2 left-[56%] w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_8px_#FF2D78,0_0_2px_#fff] pointer-events-none transition-all duration-300" id="splash-bead"></div>
+</div>
+<!-- iOS Home Indicator -->
+<div class="w-36 h-[5px] rounded-full bg-neutral-900/25"></div>
+</div>
+</div>
+<script>
+  (function() {
+    const bar = document.getElementById('splash-progress');
+    const bead = document.getElementById('splash-bead');
+    if (!bar) return;
+
+    let progress = 58;
+    const interval = setInterval(() => {
+      if (progress >= 94) {
+        clearInterval(interval);
+        return;
+      }
+      progress += Math.random() * 6 + 2;
+      if (progress > 95) progress = 95;
+      bar.style.width = progress + '%';
+      if (bead) {
+        bead.style.left = `calc(${progress}% - 5px)`;
+      }
+    }, 420);
+  })();
+</script></main></body></html>

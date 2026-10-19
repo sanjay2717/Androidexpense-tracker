@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useHomeDashboardData } from '../../src/lib/api';
+import { useLoading } from '../../src/context/LoadingContext';
 import { CountUpText } from '../../src/components/CountUpText';
 import { DonutChart } from '../../src/components/DonutChart';
 import { HomeSkeleton } from '../../src/components/Skeleton';
@@ -35,6 +36,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { metrics, isLoading, isError, error, refetch } = useHomeDashboardData();
+  const { reloadApp } = useLoading();
   const [refreshing, setRefreshing] = React.useState(false);
 
   const onRefresh = React.useCallback(async () => {
@@ -328,7 +330,28 @@ export default function HomeScreen() {
           <Text style={styles.syncText}>All accounts synced safely 2m ago</Text>
         </View>
       </View>
-        </ScrollView>
+
+      {/* Interactive App Reload / Replay Splash Button */}
+      <View style={styles.reloadContainer}>
+        <TouchableOpacity
+          style={styles.reloadButton}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            reloadApp();
+          }}
+          activeOpacity={0.75}
+        >
+          <View style={styles.reloadIconCircle}>
+            <Text style={styles.reloadIconText}>↻</Text>
+          </View>
+          <View style={styles.reloadTextCol}>
+            <Text style={styles.reloadTitle}>Reload App Experience</Text>
+            <Text style={styles.reloadSubtitle}>Replay Zen splash & refresh live metrics</Text>
+          </View>
+          <ChevronRightIcon size={16} color={theme.colors.primary} />
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
       )}
     </View>
   );
@@ -785,5 +808,53 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: theme.colors.secondary,
     fontWeight: '500',
+  },
+  reloadContainer: {
+    marginVertical: 6,
+    marginBottom: 12,
+  },
+  reloadButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 45, 120, 0.15)',
+    shadowColor: '#1F1D24',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+    gap: 12,
+  },
+  reloadIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255, 45, 120, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reloadIconText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FF2D78',
+    marginTop: -2,
+  },
+  reloadTextCol: {
+    flex: 1,
+  },
+  reloadTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
+    color: '#1F1D24',
+  },
+  reloadSubtitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: '#76747E',
+    marginTop: 2,
   },
 });

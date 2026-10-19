@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../src/lib/supabase';
-import { saveLocalTransaction } from '../src/lib/api';
+import { saveLocalTransaction, getOrCreateDefaultWalletId } from '../src/lib/api';
 import { Transaction } from '../src/types/database';
 import { theme } from '../src/theme';
 
@@ -69,12 +69,17 @@ export default function ModalScreen() {
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      const walletId = await getOrCreateDefaultWalletId();
+
       const insertPayload: any = {
         amount: numAmount,
         type,
         note: note.trim() || selectedCategory,
         date: new Date().toISOString(),
       };
+      if (walletId) {
+        insertPayload.wallet_id = walletId;
+      }
       if (session?.user?.id) {
         insertPayload.user_id = session.user.id;
       }
@@ -87,6 +92,12 @@ export default function ModalScreen() {
           Alert.alert(
             'Saved Locally on Device',
             'Your transaction was recorded and saved locally in Putu. To enable real-time cloud sync, run the RLS policy in your Supabase SQL editor.'
+          );
+        } else if (error.code === '23502' || error.message.includes('wallet_id')) {
+          console.warn('Supabase wallet_id constraint (saved locally):', error.message);
+          Alert.alert(
+            'Saved Locally on Device',
+            'Transaction is saved in Putu! To enable cloud sync with Supabase, run the wallet schema migration in Supabase SQL editor.'
           );
         } else {
           console.warn('Supabase insert notice:', error.message);

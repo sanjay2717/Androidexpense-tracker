@@ -14,6 +14,7 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet, View } from 'react-native';
 
+import { LoadingProvider, useLoading } from '../src/context/LoadingContext';
 import { initializeAuthSession } from '../src/lib/supabase';
 import { LoadingScreen } from '../src/components/LoadingScreen';
 import { theme } from '../src/theme';
@@ -37,7 +38,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function RootLayout() {
+function RootLayoutContent() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -47,7 +48,7 @@ export default function RootLayout() {
   });
 
   const [sessionInitialized, setSessionInitialized] = useState(false);
-  const [loadingFinished, setLoadingFinished] = useState(false);
+  const { isLoadingVisible, loadingKey, handleLoadingFinish } = useLoading();
 
   // Immediately release the native OS splash screen so Putu's branded loading screen is visible
   useEffect(() => {
@@ -85,49 +86,60 @@ export default function RootLayout() {
   const isAppReady = (fontsLoaded || !!fontError) && sessionInitialized;
 
   return (
+    <>
+      <StatusBar style="dark" />
+
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: theme.colors.background },
+          animation: 'fade',
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="modal"
+          options={{
+            presentation: 'modal',
+            headerShown: true,
+            title: 'Add Transaction',
+            headerStyle: { backgroundColor: theme.colors.surfaceContainerLowest },
+            headerTintColor: theme.colors.onSurface,
+            headerTitleStyle: { fontWeight: '700' },
+          }}
+        />
+        <Stack.Screen
+          name="settings"
+          options={{
+            presentation: 'modal',
+            headerShown: true,
+            title: 'Settings',
+            headerStyle: { backgroundColor: theme.colors.surfaceContainerLowest },
+            headerTintColor: theme.colors.onSurface,
+            headerTitleStyle: { fontWeight: '700' },
+          }}
+        />
+      </Stack>
+
+      {/* Loading Screen with 2D Zen character, Reanimated physics and random 2-3s duration */}
+      {isLoadingVisible && (
+        <LoadingScreen
+          key={loadingKey}
+          isReady={isAppReady}
+          onFinish={handleLoadingFinish}
+        />
+      )}
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <GestureHandlerRootView style={styles.container}>
       <QueryClientProvider client={queryClient}>
-        <StatusBar style="dark" />
-
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: theme.colors.background },
-            animation: 'fade',
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{
-              presentation: 'modal',
-              headerShown: true,
-              title: 'Add Transaction',
-              headerStyle: { backgroundColor: theme.colors.surfaceContainerLowest },
-              headerTintColor: theme.colors.onSurface,
-              headerTitleStyle: { fontWeight: '700' },
-            }}
-          />
-          <Stack.Screen
-            name="settings"
-            options={{
-              presentation: 'modal',
-              headerShown: true,
-              title: 'Settings',
-              headerStyle: { backgroundColor: theme.colors.surfaceContainerLowest },
-              headerTintColor: theme.colors.onSurface,
-              headerTitleStyle: { fontWeight: '700' },
-            }}
-          />
-        </Stack>
-
-        {/* STEP B: Loading Screen with Reanimated smooth scale/fade-in until ready */}
-        {!loadingFinished && (
-          <LoadingScreen
-            isReady={isAppReady}
-            onFinish={() => setLoadingFinished(true)}
-          />
-        )}
+        <LoadingProvider>
+          <RootLayoutContent />
+        </LoadingProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );

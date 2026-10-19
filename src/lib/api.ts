@@ -34,6 +34,57 @@ export async function saveLocalTransaction(tx: Transaction): Promise<void> {
   }
 }
 
+export const DEFAULT_WALLET_ID_KEY = '@putu_default_wallet_id';
+export const FALLBACK_WALLET_ID = '00000000-0000-0000-0000-000000000001';
+
+/**
+ * Resolves or creates a default wallet to satisfy PostgreSQL NOT NULL constraints
+ */
+export async function getOrCreateDefaultWalletId(): Promise<string> {
+  try {
+    // 1. Check local cache first
+    const cachedId = await AsyncStorage.getItem(DEFAULT_WALLET_ID_KEY);
+    if (cachedId) {
+      return cachedId;
+    }
+
+    if (!isSupabaseConfigured) {
+      return FALLBACK_WALLET_ID;
+    }
+
+    // 2. Check if a wallet exists in remote database
+    const { data: existingWallets, error: fetchErr } = await supabase
+      .from('wallets')
+      .select('id')
+      .limit(1);
+
+    if (!fetchErr && existingWallets && existingWallets.length > 0 && existingWallets[0]?.id) {
+      const foundId = String(existingWallets[0].id);
+      await AsyncStorage.setItem(DEFAULT_WALLET_ID_KEY, foundId);
+      return foundId;
+    }
+
+    // 3. Attempt to create a default Cash wallet in the database
+    const { data: createdWallet, error: createErr } = await supabase
+      .from('wallets')
+      .insert([{ name: 'Cash Wallet' }])
+      .select('id')
+      .single();
+
+    if (!createErr && createdWallet?.id) {
+      const createdId = String(createdWallet.id);
+      await AsyncStorage.setItem(DEFAULT_WALLET_ID_KEY, createdId);
+      return createdId;
+    }
+
+    // 4. Return standard fallback UUID
+    return FALLBACK_WALLET_ID;
+  } catch (err) {
+    console.warn('Notice resolving default wallet:', err);
+    return FALLBACK_WALLET_ID;
+  }
+}
+
 export interface CategorySpending {
   categoryId: string;
   name: string;
