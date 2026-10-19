@@ -11,6 +11,7 @@ import Animated, {
   interpolate,
   Extrapolation,
   useAnimatedKeyboard,
+  cancelAnimation,
   type SharedValue,
 } from 'react-native-reanimated';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
@@ -200,9 +201,38 @@ export function AuthHero({
   const floatChartY = useSharedValue(0);
   const floatChartR = useSharedValue(0);
 
-  // Initialize looping float animations
+  // Initialize looping float animations - pause when keyboard/input is focused to preserve 90 FPS
   useEffect(() => {
-    if (reduceMotion) return;
+    const isTyping = focusedField !== null;
+
+    if (reduceMotion || isTyping) {
+      cancelAnimation(floatCoinY);
+      cancelAnimation(floatCoinR);
+      cancelAnimation(floatWalletY);
+      cancelAnimation(floatWalletR);
+      cancelAnimation(floatCardY);
+      cancelAnimation(floatCardR);
+      cancelAnimation(floatPiggyY);
+      cancelAnimation(floatPiggyR);
+      cancelAnimation(floatReceiptY);
+      cancelAnimation(floatReceiptR);
+      cancelAnimation(floatChartY);
+      cancelAnimation(floatChartR);
+
+      floatCoinY.value = withTiming(0, { duration: 200 });
+      floatCoinR.value = withTiming(0, { duration: 200 });
+      floatWalletY.value = withTiming(0, { duration: 200 });
+      floatWalletR.value = withTiming(0, { duration: 200 });
+      floatCardY.value = withTiming(0, { duration: 200 });
+      floatCardR.value = withTiming(0, { duration: 200 });
+      floatPiggyY.value = withTiming(0, { duration: 200 });
+      floatPiggyR.value = withTiming(0, { duration: 200 });
+      floatReceiptY.value = withTiming(0, { duration: 200 });
+      floatReceiptR.value = withTiming(0, { duration: 200 });
+      floatChartY.value = withTiming(0, { duration: 200 });
+      floatChartR.value = withTiming(0, { duration: 200 });
+      return;
+    }
 
     // Coin float
     floatCoinY.value = withRepeat(
@@ -311,7 +341,22 @@ export function AuthHero({
       -1,
       true
     );
-  }, [reduceMotion]);
+
+    return () => {
+      cancelAnimation(floatCoinY);
+      cancelAnimation(floatCoinR);
+      cancelAnimation(floatWalletY);
+      cancelAnimation(floatWalletR);
+      cancelAnimation(floatCardY);
+      cancelAnimation(floatCardR);
+      cancelAnimation(floatPiggyY);
+      cancelAnimation(floatPiggyR);
+      cancelAnimation(floatReceiptY);
+      cancelAnimation(floatReceiptR);
+      cancelAnimation(floatChartY);
+      cancelAnimation(floatChartR);
+    };
+  }, [reduceMotion, focusedField]);
 
   // Periodic random blinking
   useEffect(() => {

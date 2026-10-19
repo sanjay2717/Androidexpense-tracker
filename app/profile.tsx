@@ -80,7 +80,7 @@ export default function ProfileScreen() {
 
   // Fetch real counts from existing queries
   const { data: wallets = [] } = useQuery({
-    queryKey: ['wallets'],
+    queryKey: ['wallet_balances'],
     queryFn: fetchWalletBalances,
   });
 

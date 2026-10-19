@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -81,6 +81,129 @@ function formatCurrency(val: number) {
     maximumFractionDigits: 0,
   });
 }
+
+interface CategoryBudgetRowProps {
+  cat: Category;
+  spent: number;
+  isFirst: boolean;
+  onPress: (cat: Category) => void;
+}
+
+const CategoryBudgetRow = React.memo(function CategoryBudgetRow({
+  cat,
+  spent,
+  isFirst,
+  onPress,
+}: CategoryBudgetRowProps) {
+  const limit = Number(cat.budget_limit) || null;
+  const hasLimit = limit !== null && limit > 0;
+  const ratio = hasLimit ? spent / limit : 0;
+  const percent = hasLimit ? Math.round(ratio * 100) : 0;
+  const isOver = hasLimit && spent > limit;
+  const isNear = hasLimit && ratio >= 0.8 && !isOver;
+
+  let barColor: string = theme.colors.primary;
+  if (isOver) {
+    barColor = theme.colors.error;
+  } else if (isNear) {
+    barColor = theme.colors.warning;
+  }
+
+  return (
+    <View>
+      {!isFirst ? <View style={styles.divider} /> : null}
+      <TouchableOpacity
+        style={styles.categoryRow}
+        onPress={() => onPress(cat)}
+        activeOpacity={0.7}
+      >
+        <View
+          style={[
+            styles.catIconWrap,
+            { backgroundColor: cat.color ? cat.color + '18' : theme.colors.primaryFixed },
+          ]}
+        >
+          <CategoryIcon name={cat.name} color={cat.color || theme.colors.primary} size={20} />
+        </View>
+
+        <View style={styles.catInfoCol}>
+          <View style={styles.catTitleRow}>
+            <View style={styles.catNameContainer}>
+              <Text style={styles.catName} numberOfLines={1}>
+                {cat.name}
+              </Text>
+              {isOver ? (
+                <View style={styles.overBadge}>
+                  <Text style={styles.overBadgeText}>
+                    ₹{formatCurrency(spent - limit)} over
+                  </Text>
+                </View>
+              ) : isNear ? (
+                <View style={styles.nearBadge}>
+                  <Text style={styles.nearBadgeText}>Near limit</Text>
+                </View>
+              ) : null}
+            </View>
+
+            <Text style={styles.catAmountText}>
+              ₹{formatCurrency(spent)}
+              {hasLimit ? (
+                <Text style={styles.catLimitDim}> / ₹{formatCurrency(limit)}</Text>
+              ) : (
+                <Text style={styles.noLimitTag}> · No limit</Text>
+              )}
+            </Text>
+          </View>
+
+          {hasLimit ? (
+            <View style={styles.catProgressBarTrack}>
+              <View
+                style={[
+                  styles.catProgressBarFill,
+                  {
+                    width: `${Math.min(100, Math.max(2, percent))}%`,
+                    backgroundColor: barColor,
+                  },
+                ]}
+              />
+            </View>
+          ) : null}
+
+          <View style={styles.catMetaRow}>
+            {hasLimit ? (
+              <>
+                <Text
+                  style={[
+                    styles.catMetaText,
+                    isOver && { color: theme.colors.error, fontWeight: '600' },
+                  ]}
+                >
+                  {percent}% used
+                </Text>
+                <Text
+                  style={[
+                    styles.catMetaText,
+                    isOver
+                      ? { color: theme.colors.error }
+                      : { color: theme.colors.onSurfaceVariant, fontWeight: '500' },
+                  ]}
+                >
+                  {isOver
+                    ? 'Limit exceeded'
+                    : `₹${formatCurrency(limit - spent)} left`}
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.setLimitPrompt}>+ Tap to set monthly budget</Text>
+            )}
+          </View>
+        </View>
+
+        <ChevronRightIcon size={18} color={theme.colors.outline} />
+      </TouchableOpacity>
+    </View>
+  );
+});
 
 export default function PlanningScreen() {
   const insets = useSafeAreaInsets();
@@ -250,12 +373,12 @@ export default function PlanningScreen() {
   }));
 
   // Open Category Budget Sheet
-  const handleOpenBudgetSheet = (cat: Category) => {
+  const handleOpenBudgetSheet = useCallback((cat: Category) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedCategory(cat);
     setBudgetInput(cat.budget_limit ? String(cat.budget_limit) : '');
     setBudgetSheetVisible(true);
-  };
+  }, []);
 
   // Keypad actions for Budget
   const handleBudgetDigit = (digit: string) => {
@@ -660,118 +783,14 @@ export default function PlanningScreen() {
             <View style={styles.categoryCardGroup}>
               {expenseCategories.map((cat: Category, index: number) => {
                 const spent = currentMonthSpentByCat[cat.id] || 0;
-                const limit = Number(cat.budget_limit) || null;
-                const hasLimit = limit !== null && limit > 0;
-                const ratio = hasLimit ? spent / limit : 0;
-                const percent = hasLimit ? Math.round(ratio * 100) : 0;
-                const isOver = hasLimit && spent > limit;
-                const isNear = hasLimit && ratio >= 0.8 && !isOver;
-
-                // Color for progress bar
-                let barColor: string = theme.colors.primary;
-                if (isOver) {
-                  barColor = theme.colors.error;
-                } else if (isNear) {
-                  barColor = theme.colors.warning; // orange at 80%
-                }
-
                 return (
-                  <View key={cat.id}>
-                    {index > 0 ? <View style={styles.divider} /> : null}
-                    <TouchableOpacity
-                      style={styles.categoryRow}
-                      onPress={() => handleOpenBudgetSheet(cat)}
-                      activeOpacity={0.7}
-                    >
-                      {/* Category Icon */}
-                      <View
-                        style={[
-                          styles.catIconWrap,
-                          { backgroundColor: cat.color ? cat.color + '18' : theme.colors.primaryFixed },
-                        ]}
-                      >
-                        <CategoryIcon name={cat.name} color={cat.color || theme.colors.primary} size={20} />
-                      </View>
-
-                      {/* Info & Progress */}
-                      <View style={styles.catInfoCol}>
-                        <View style={styles.catTitleRow}>
-                          <View style={styles.catNameContainer}>
-                            <Text style={styles.catName} numberOfLines={1}>
-                              {cat.name}
-                            </Text>
-                            {isOver ? (
-                              <View style={styles.overBadge}>
-                                <Text style={styles.overBadgeText}>
-                                  ₹{formatCurrency(spent - limit)} over
-                                </Text>
-                              </View>
-                            ) : isNear ? (
-                              <View style={styles.nearBadge}>
-                                <Text style={styles.nearBadgeText}>Near limit</Text>
-                              </View>
-                            ) : null}
-                          </View>
-
-                          <Text style={styles.catAmountText}>
-                            ₹{formatCurrency(spent)}
-                            {hasLimit ? (
-                              <Text style={styles.catLimitDim}> / ₹{formatCurrency(limit)}</Text>
-                            ) : (
-                              <Text style={styles.noLimitTag}> · No limit</Text>
-                            )}
-                          </Text>
-                        </View>
-
-                        {/* Progress bar */}
-                        {hasLimit ? (
-                          <View style={styles.catProgressBarTrack}>
-                            <View
-                              style={[
-                                styles.catProgressBarFill,
-                                {
-                                  width: `${Math.min(100, Math.max(2, percent))}%`,
-                                  backgroundColor: barColor,
-                                },
-                              ]}
-                            />
-                          </View>
-                        ) : null}
-
-                        {/* Bottom hint */}
-                        <View style={styles.catMetaRow}>
-                          {hasLimit ? (
-                            <>
-                              <Text
-                                style={[
-                                  styles.catMetaText,
-                                  isOver && { color: theme.colors.error, fontWeight: '600' },
-                                ]}
-                              >
-                                {percent}% used
-                              </Text>
-                              <Text
-                                style={[
-                                  styles.catMetaText,
-                                  isOver
-                                    ? { color: theme.colors.error }
-                                    : { color: theme.colors.onSurfaceVariant, fontWeight: '500' },
-                                ]}
-                              >
-                                {isOver
-                                  ? 'Limit exceeded'
-                                  : `₹${formatCurrency(limit - spent)} left`}
-                              </Text>
-                            </>
-                          ) : (
-                            <Text style={styles.setLimitPrompt}>+ Tap to set monthly budget</Text>
-                          )}
-                        </View>
-                      </View>
-
-                      <ChevronRightIcon size={18} color={theme.colors.outline} />
-                    </TouchableOpacity>
-                  </View>
+                  <CategoryBudgetRow
+                    key={cat.id}
+                    cat={cat}
+                    spent={spent}
+                    isFirst={index === 0}
+                    onPress={handleOpenBudgetSheet}
+                  />
                 );
               })}
             </View>

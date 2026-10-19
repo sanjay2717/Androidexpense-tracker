@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -65,6 +65,72 @@ function getGradientForColor(color?: string) {
   if (match) return match.gradient;
   return ['#4c4aca', '#3b38ba', '#252285'] as const;
 }
+
+const WalletActivityRow = React.memo(function WalletActivityRow({
+  tx,
+  isLast,
+}: {
+  tx: Transaction;
+  isLast: boolean;
+}) {
+  const isIncome = tx.type === 'income';
+  const displayTitle = tx.note || tx.category?.name || (isIncome ? 'Money Added' : 'Deduction');
+  const categorySubtitle = tx.category?.name ? tx.category.name : 'Wallet Adjustment';
+
+  return (
+    <View
+      style={[
+        styles.activityRow,
+        !isLast && styles.activityRowDivider,
+      ]}
+    >
+      <View style={styles.activityLeft}>
+        <View
+          style={[
+            styles.activityIconCircle,
+            isIncome
+              ? { backgroundColor: theme.colors.emeraldLight }
+              : { backgroundColor: theme.colors.primaryFixed },
+          ]}
+        >
+          <CategoryIcon
+            name={tx.note || tx.category?.name}
+            color={isIncome ? theme.colors.emeraldDark : theme.colors.primaryDark}
+            size={18}
+          />
+        </View>
+        <View style={styles.activityTextGroup}>
+          <View style={styles.activityTitleRow}>
+            <Text style={styles.activityTitle} numberOfLines={1}>
+              {displayTitle}
+            </Text>
+            {tx.is_adjustment ? (
+              <View style={styles.adjustmentBadge}>
+                <Text style={styles.adjustmentBadgeText}>Adjustment</Text>
+              </View>
+            ) : null}
+          </View>
+          <Text style={styles.activityMeta} numberOfLines={1}>
+            {categorySubtitle} • {tx.date ? tx.date.slice(0, 10) : 'Recent'}
+          </Text>
+        </View>
+      </View>
+
+      <Text
+        style={[
+          styles.activityAmount,
+          isIncome ? styles.incomeAmountText : styles.expenseAmountText,
+        ]}
+      >
+        {isIncome ? '+' : '-'}₹
+        {Number(tx.amount).toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}
+      </Text>
+    </View>
+  );
+});
 
 export default function WalletScreen() {
   const insets = useSafeAreaInsets();
@@ -139,14 +205,19 @@ export default function WalletScreen() {
   // ----------------------------------------------------
   // Handlers for Carousel
   // ----------------------------------------------------
-  const handleScroll = (event: any) => {
+  const handleScroll = useCallback((event: any) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const index = Math.round(offsetX / (CARD_WIDTH + CARD_GAP));
-    if (index >= 0 && index < wallets.length && index !== activeIndex) {
-      setActiveIndex(index);
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (index >= 0 && index < wallets.length) {
+      setActiveIndex((prev) => {
+        if (prev !== index) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          return index;
+        }
+        return prev;
+      });
     }
-  };
+  }, [wallets.length]);
 
   // ----------------------------------------------------
   // Handlers for Create Wallet
@@ -609,64 +680,13 @@ export default function WalletScreen() {
             ) : (
               <View style={styles.activityCard}>
                 {walletTransactions.slice(0, 10).map((tx: Transaction, idx: number) => {
-                  const isIncome = tx.type === 'income';
                   const isLast = idx === Math.min(walletTransactions.length, 10) - 1;
-                  const displayTitle = tx.note || tx.category?.name || (isIncome ? 'Money Added' : 'Deduction');
-                  const categorySubtitle = tx.category?.name ? tx.category.name : 'Wallet Adjustment';
-
                   return (
-                    <View
+                    <WalletActivityRow
                       key={tx.id || String(idx)}
-                      style={[
-                        styles.activityRow,
-                        !isLast && styles.activityRowDivider,
-                      ]}
-                    >
-                      <View style={styles.activityLeft}>
-                        <View
-                          style={[
-                            styles.activityIconCircle,
-                            isIncome
-                              ? { backgroundColor: theme.colors.emeraldLight }
-                              : { backgroundColor: theme.colors.primaryFixed },
-                          ]}
-                        >
-                          <CategoryIcon
-                            name={tx.note || tx.category?.name}
-                            color={isIncome ? theme.colors.emeraldDark : theme.colors.primaryDark}
-                            size={18}
-                          />
-                        </View>
-                        <View style={styles.activityTextGroup}>
-                          <View style={styles.activityTitleRow}>
-                            <Text style={styles.activityTitle} numberOfLines={1}>
-                              {displayTitle}
-                            </Text>
-                            {tx.is_adjustment ? (
-                              <View style={styles.adjustmentBadge}>
-                                <Text style={styles.adjustmentBadgeText}>Adjustment</Text>
-                              </View>
-                            ) : null}
-                          </View>
-                          <Text style={styles.activityMeta} numberOfLines={1}>
-                            {categorySubtitle} • {tx.date ? tx.date.slice(0, 10) : 'Recent'}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <Text
-                        style={[
-                          styles.activityAmount,
-                          isIncome ? styles.incomeAmountText : styles.expenseAmountText,
-                        ]}
-                      >
-                        {isIncome ? '+' : '-'}₹
-                        {Number(tx.amount).toLocaleString('en-IN', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </Text>
-                    </View>
+                      tx={tx}
+                      isLast={isLast}
+                    />
                   );
                 })}
               </View>

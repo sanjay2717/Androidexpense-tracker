@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 interface LoadingContextType {
@@ -32,16 +32,15 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     setIsLoadingVisible(false);
   }, []);
 
-  return (
-    <LoadingContext.Provider
-      value={{
-        reloadApp,
-        isLoadingVisible,
-        loadingKey,
-        handleLoadingFinish,
-      }}
-    >
-      {children}
-    </LoadingContext.Provider>
+  const value = useMemo(
+    () => ({
+      reloadApp,
+      isLoadingVisible,
+      loadingKey,
+      handleLoadingFinish,
+    }),
+    [reloadApp, isLoadingVisible, loadingKey, handleLoadingFinish]
   );
+
+  return <LoadingContext.Provider value={value}>{children}</LoadingContext.Provider>;
 }

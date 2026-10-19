@@ -36,6 +36,77 @@ import { theme } from '../../src/theme';
 const AVATAR_URL =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuAdqbp3YTpg4Et60AdMRCSqIgEhcZfSr1hamEXUdGzq_pt4mvpjN632b-gwGoe31r92WgE1M7pX82MoeIploaeWsSG4ARFEy-SlYtDG7WSFNkM6WkWNi6VarZtLwCytCuQC7y3oLDVGGPlVQTzgfxcFQg39tbxgMP9x-wojBhiBntmd1r4BGTDMdoomwtXYJRMP1qJ_RaFd3LymtrfpQ-HcwUYe0YZoEGOTcoAEqXUhZ2uXJrLOXRiBBA';
 
+const HomeTransactionRow = React.memo(function HomeTransactionRow({
+  item,
+  isAlt,
+  onPress,
+}: {
+  item: any;
+  isAlt: boolean;
+  onPress: () => void;
+}) {
+  const isIncome = item.type === 'income';
+  const categoryName = item.category?.name || 'General';
+  const walletName = item.wallet?.name;
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.txRow,
+        isAlt && styles.txRowAlt,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={styles.txLeft}>
+        <View
+          style={[
+            styles.txIconContainer,
+            isIncome
+              ? { backgroundColor: theme.colors.emeraldLight }
+              : { backgroundColor: theme.colors.primaryFixed },
+          ]}
+        >
+          <CategoryIcon
+            name={item.note || categoryName}
+            color={isIncome ? theme.colors.emeraldDark : theme.colors.primaryContainer}
+            size={20}
+          />
+        </View>
+        <View style={styles.txTextCol}>
+          <View style={styles.txTitleRow}>
+            <Text style={styles.txTitle} numberOfLines={1}>
+              {item.note || categoryName}
+            </Text>
+            {item.is_adjustment ? (
+              <View style={styles.adjustmentBadge}>
+                <Text style={styles.adjustmentBadgeText}>Adjustment</Text>
+              </View>
+            ) : null}
+          </View>
+          <Text style={styles.txMeta} numberOfLines={1}>
+            {item.is_adjustment ? 'Adjustment' : categoryName} · {isIncome ? 'Income' : 'Expense'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.txRight}>
+        <Text
+          style={[
+            styles.txAmount,
+            isIncome ? styles.txAmountIncome : styles.txAmountExpense,
+          ]}
+        >
+          {isIncome ? '+' : '-'}₹{item.amount.toLocaleString('en-IN')}
+        </Text>
+        {walletName ? (
+          <Text style={styles.txTag}>{walletName}</Text>
+        ) : null}
+      </View>
+    </TouchableOpacity>
+  );
+});
+
 export default function HomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -59,23 +130,25 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [refetch]);
 
-  const handleSettingsPress = () => {
+  const handleSettingsPress = React.useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push('/settings');
-  };
+  }, [router]);
 
-  const handleNotificationsPress = () => {
+  const handleNotificationsPress = React.useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
+  }, []);
 
-  const handleTransactionPress = () => {
+  const handleTransactionPress = React.useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  };
+  }, []);
 
-  const currentMonthName = new Date().toLocaleString('en-US', { month: 'long' });
+  const currentMonthName = React.useMemo(() => {
+    return new Date().toLocaleString('en-US', { month: 'long' });
+  }, []);
 
   // Format real sync status from query dataUpdatedAt
-  const formatSyncStatus = () => {
+  const formatSyncStatus = React.useCallback(() => {
     if (!isOnline) {
       return 'Offline';
     }
@@ -92,7 +165,7 @@ export default function HomeScreen() {
     }
     const diffHours = Math.floor(diffMin / 60);
     return `Synced · ${diffHours}h ago`;
-  };
+  }, [isOnline, dataUpdatedAt]);
 
   return (
     <View style={[styles.rootContainer, { paddingTop: insets.top }]}>
@@ -387,69 +460,14 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
           ) : (
-            metrics.recentTransactions.slice(0, 5).map((item, index) => {
-              const isIncome = item.type === 'income';
-              const categoryName = item.category?.name || 'General';
-              const walletName = item.wallet?.name;
-
-              return (
-                <TouchableOpacity
-                  key={item.id || String(index)}
-                  style={[
-                    styles.txRow,
-                    index % 2 === 1 && styles.txRowAlt,
-                  ]}
-                  onPress={handleTransactionPress}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.txLeft}>
-                    <View
-                      style={[
-                        styles.txIconContainer,
-                        isIncome
-                          ? { backgroundColor: theme.colors.emeraldLight }
-                          : { backgroundColor: theme.colors.primaryFixed },
-                      ]}
-                    >
-                      <CategoryIcon
-                        name={item.note || categoryName}
-                        color={isIncome ? theme.colors.emeraldDark : theme.colors.primaryContainer}
-                        size={20}
-                      />
-                    </View>
-                    <View style={styles.txTextCol}>
-                      <View style={styles.txTitleRow}>
-                        <Text style={styles.txTitle} numberOfLines={1}>
-                          {item.note || categoryName}
-                        </Text>
-                        {item.is_adjustment ? (
-                          <View style={styles.adjustmentBadge}>
-                            <Text style={styles.adjustmentBadgeText}>Adjustment</Text>
-                          </View>
-                        ) : null}
-                      </View>
-                      <Text style={styles.txMeta} numberOfLines={1}>
-                        {item.is_adjustment ? 'Adjustment' : categoryName} · {isIncome ? 'Income' : 'Expense'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.txRight}>
-                    <Text
-                      style={[
-                        styles.txAmount,
-                        isIncome ? styles.txAmountIncome : styles.txAmountExpense,
-                      ]}
-                    >
-                      {isIncome ? '+' : '-'}₹{item.amount.toLocaleString('en-IN')}
-                    </Text>
-                    {walletName ? (
-                      <Text style={styles.txTag}>{walletName}</Text>
-                    ) : null}
-                  </View>
-                </TouchableOpacity>
-              );
-            })
+            metrics.recentTransactions.slice(0, 5).map((item, index) => (
+              <HomeTransactionRow
+                key={item.id || String(index)}
+                item={item}
+                isAlt={index % 2 === 1}
+                onPress={handleTransactionPress}
+              />
+            ))
           )}
         </View>
       </View>

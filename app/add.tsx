@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -247,10 +247,19 @@ export default function AddTransactionScreen() {
   const numericAmount = parseFloat(amountStr) || 0;
   const isFormValid = numericAmount > 0 && !!selectedCategoryId && !!selectedWalletId;
 
-  // Selected entities
-  const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
-  const selectedWallet = wallets.find((w) => (w.id || w.wallet_id) === selectedWalletId);
-  const filteredCategories = categories.filter((c) => (c.type || 'expense') === type);
+  // Selected entities memoized to avoid re-searching on every digit press
+  const selectedCategory = useMemo(
+    () => categories.find((c) => c.id === selectedCategoryId),
+    [categories, selectedCategoryId]
+  );
+  const selectedWallet = useMemo(
+    () => wallets.find((w) => (w.id || w.wallet_id) === selectedWalletId),
+    [wallets, selectedWalletId]
+  );
+  const filteredCategories = useMemo(
+    () => categories.filter((c) => (c.type || 'expense') === type),
+    [categories, type]
+  );
 
   // Save Transaction
   const handleSave = async () => {
@@ -461,7 +470,7 @@ export default function AddTransactionScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriesRow}
             >
-              {filteredCategories.map((cat) => {
+              {filteredCategories.map((cat: Category) => {
                 const isSelected = cat.id === selectedCategoryId;
                 return (
                   <TouchableOpacity

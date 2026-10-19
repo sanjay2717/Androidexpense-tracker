@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useCallback, useRef, memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { PieChart } from 'react-native-gifted-charts';
 import Animated, {
@@ -16,17 +16,18 @@ interface DonutChartProps {
   totalAmount: number;
 }
 
-export function DonutChart({ data, totalAmount }: DonutChartProps) {
+export const DonutChart = memo(function DonutChart({ data, totalAmount }: DonutChartProps) {
   const scale = useSharedValue(0.85);
   const opacity = useSharedValue(0);
+  const hasAnimatedOnceRef = useRef(false);
 
   useEffect(() => {
     scale.value = withDelay(
-      200,
-      withTiming(1, { duration: 600, easing: Easing.out(Easing.back(1.2)) })
+      150,
+      withTiming(1, { duration: 500, easing: Easing.out(Easing.back(1.2)) })
     );
-    opacity.value = withDelay(200, withTiming(1, { duration: 500 }));
-  }, [scale, opacity]);
+    opacity.value = withDelay(150, withTiming(1, { duration: 400 }));
+  }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -35,18 +36,39 @@ export function DonutChart({ data, totalAmount }: DonutChartProps) {
 
   const hasData = data.length > 0 && totalAmount > 0;
 
-  // Format chart data for gifted-charts - empty ring when no spending
-  const pieData = hasData
-    ? data.map((item) => ({
-        value: Math.max(1, item.amount),
-        color: item.color,
-      }))
-    : [{ value: 1, color: theme.colors.surfaceContainerHigh }];
+  // Format chart data for gifted-charts - memoize to prevent internal GiftedCharts animation thrash
+  const pieData = useMemo(() => {
+    if (!hasData) {
+      return [{ value: 1, color: theme.colors.surfaceContainerHigh }];
+    }
+    return data.map((item) => ({
+      value: Math.max(1, item.amount),
+      color: item.color,
+    }));
+  }, [hasData, data]);
 
-  const formattedTotal =
-    totalAmount >= 1000
+  const formattedTotal = useMemo(() => {
+    return totalAmount >= 1000
       ? `₹${(totalAmount / 1000).toFixed(1)}k`
       : `₹${totalAmount}`;
+  }, [totalAmount]);
+
+  const renderCenterLabel = useCallback(
+    () => (
+      <View style={styles.centerLabel}>
+        <Text style={styles.centerSub}>TOTAL</Text>
+        <Text style={styles.centerMain} numberOfLines={1}>
+          {formattedTotal}
+        </Text>
+      </View>
+    ),
+    [formattedTotal]
+  );
+
+  const shouldAnimate = hasData && !hasAnimatedOnceRef.current;
+  if (hasData) {
+    hasAnimatedOnceRef.current = true;
+  }
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
@@ -57,16 +79,9 @@ export function DonutChart({ data, totalAmount }: DonutChartProps) {
           radius={54}
           innerRadius={38}
           innerCircleColor={theme.colors.surfaceContainerLowest}
-          isAnimated={hasData}
-          animationDuration={700}
-          centerLabelComponent={() => (
-            <View style={styles.centerLabel}>
-              <Text style={styles.centerSub}>TOTAL</Text>
-              <Text style={styles.centerMain} numberOfLines={1}>
-                {formattedTotal}
-              </Text>
-            </View>
-          )}
+          isAnimated={shouldAnimate}
+          animationDuration={600}
+          centerLabelComponent={renderCenterLabel}
         />
       </View>
 
@@ -95,7 +110,7 @@ export function DonutChart({ data, totalAmount }: DonutChartProps) {
       </View>
     </Animated.View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

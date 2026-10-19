@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useMemo } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { Session, User, AuthResponse, UserResponse } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { queryClient } from './queryClient';
@@ -9,6 +9,8 @@ export interface AuthContextType {
   isAnonymous: boolean;
   isPermanentUser: boolean;
   isGuestActive: boolean;
+  isUpgrading: boolean;
+  setIsUpgrading: (upgrading: boolean) => void;
   isLoading: boolean;
   signInWithPassword: (email: string, password: string) => Promise<AuthResponse>;
   signUp: (name: string, email: string, password: string) => Promise<AuthResponse | UserResponse>;
@@ -25,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGuestActive, setIsGuestActive] = useState(false);
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -77,7 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return Boolean(user && !user.is_anonymous && user.email);
   }, [user]);
 
-  const signInWithPassword = async (email: string, password: string): Promise<AuthResponse> => {
+  const signInWithPassword = useCallback(async (email: string, password: string): Promise<AuthResponse> => {
     queryClient.clear();
     const result = await supabase.auth.signInWithPassword({
       email: email.trim(),
@@ -89,52 +92,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsGuestActive(false);
     queryClient.clear();
     return result;
-  };
+  }, []);
 
-  const signUp = async (
-    name: string,
-    email: string,
-    password: string
-  ): Promise<AuthResponse | UserResponse> => {
-    const cleanEmail = email.trim();
-    const displayName = name.trim();
+  const signUp = useCallback(
+    async (
+      name: string,
+      email: string,
+      password: string
+    ): Promise<AuthResponse | UserResponse> => {
+      const cleanEmail = email.trim();
+      const displayName = name.trim();
 
-    if (user && isAnonymous) {
-      // Upgrade guest session to permanent user account to keep all existing data
-      const result = await supabase.auth.updateUser({
-        email: cleanEmail,
-        password,
-        data: {
-          display_name: displayName,
-        },
-      });
-      if (result.error) {
-        throw result.error;
-      }
-      setIsGuestActive(false);
-      queryClient.clear();
-      return result;
-    } else {
-      // Direct sign-up for new user
-      const result = await supabase.auth.signUp({
-        email: cleanEmail,
-        password,
-        options: {
+      if (user && isAnonymous) {
+        // Upgrade guest session to permanent user account to keep all existing data
+        const result = await supabase.auth.updateUser({
+          email: cleanEmail,
+          password,
           data: {
             display_name: displayName,
           },
-        },
-      });
-      if (result.error) {
-        throw result.error;
+        });
+        if (result.error) {
+          throw result.error;
+        }
+        setIsGuestActive(false);
+        queryClient.clear();
+        return result;
+      } else {
+        // Direct sign-up for new user
+        const result = await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              display_name: displayName,
+            },
+          },
+        });
+        if (result.error) {
+          throw result.error;
+        }
+        setIsGuestActive(false);
+        queryClient.clear();
+        return result;
       }
-      setIsGuestActive(false);
-      queryClient.clear();
-      return result;
-    }
-  };
+    },
+    [user, isAnonymous]
+  );
 
-  const signInAnonymously = async (): Promise<AuthResponse | { data: { session: Session | null; user: User | null }; error: null }> => {
+  const signInAnonymously = useCallback(async (): Promise<AuthResponse | { data: { session: Session | null; user: User | null }; error: null }> => {
     setIsGuestActive(true);
     if (session && user && isAnonymous) {
       // Existing anonymous session is active, reuse it to preserve guest data
@@ -148,17 +154,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     queryClient.clear();
     return result;
-  };
+  }, [session, user, isAnonymous]);
 
-  const signOut = async (): Promise<{ error: Error | null }> => {
+  const signOut = useCallback(async (): Promise<{ error: Error | null }> => {
     setIsGuestActive(false);
     queryClient.clear();
     const result = await supabase.auth.signOut();
     queryClient.clear();
     return result;
-  };
+  }, []);
 
-  const updateDisplayName = async (displayName: string): Promise<UserResponse> => {
+  const updateDisplayName = useCallback(async (displayName: string): Promise<UserResponse> => {
     const result = await supabase.auth.updateUser({
       data: {
         display_name: displayName.trim(),
@@ -171,9 +177,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(result.data.user);
     }
     return result;
-  };
+  }, []);
 
-  const hasGuestData = async (): Promise<boolean> => {
+  const hasGuestData = useCallback(async (): Promise<boolean> => {
     if (!user || !isAnonymous) {
       return false;
     }
@@ -206,7 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       return false;
     }
-  };
+  }, [user, isAnonymous]);
 
   const value = useMemo(
     () => ({
@@ -215,6 +221,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAnonymous,
       isPermanentUser,
       isGuestActive,
+      isUpgrading,
+      setIsUpgrading,
       isLoading,
       signInWithPassword,
       signUp,
@@ -223,7 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updateDisplayName,
       hasGuestData,
     }),
-    [session, user, isAnonymous, isPermanentUser, isGuestActive, isLoading]
+    [session, user, isAnonymous, isPermanentUser, isGuestActive, isUpgrading, isLoading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

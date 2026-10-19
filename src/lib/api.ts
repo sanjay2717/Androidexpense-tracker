@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { Transaction, WalletBalance, Category, Goal } from '../types/database';
@@ -166,107 +167,111 @@ export function useHomeDashboardData() {
   const categories = categoriesQuery.data || [];
   const transactions = transactionsQuery.data || [];
 
-  // Compute total balance across all wallets - zero data is 0
-  let computedTotalBalance = 0;
-  if (balances.length > 0) {
-    computedTotalBalance = balances.reduce((acc, curr) => {
-      const val = curr.total_balance ?? curr.balance ?? 0;
-      return acc + Number(val);
-    }, 0);
-  }
-
-  // Filter current month transactions
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth();
-
-  let monthlyIncome = 0;
-  let monthlyExpenses = 0;
-  const categoryMap = new Map<string, { id: string; name: string; amount: number; color?: string }>();
-
-  transactions.forEach((tx) => {
-    // EXCLUDE is_adjustment = true rows from all financial aggregates
-    if (tx.is_adjustment) {
-      return;
+  // Memoize all financial math & aggregations so re-renders don't re-calculate
+  const metrics = useMemo<MonthlyBudgetMetrics>(() => {
+    // Compute total balance across all wallets - zero data is 0
+    let computedTotalBalance = 0;
+    if (balances.length > 0) {
+      computedTotalBalance = balances.reduce((acc, curr) => {
+        const val = curr.total_balance ?? curr.balance ?? 0;
+        return acc + Number(val);
+      }, 0);
     }
 
-    const txDate = new Date(tx.date || tx.created_at || '');
-    const isThisMonth =
-      !isNaN(txDate.getTime()) &&
-      txDate.getFullYear() === currentYear &&
-      txDate.getMonth() === currentMonth;
+    // Filter current month transactions
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
 
-    if (tx.type === 'income') {
-      if (isThisMonth) {
-        monthlyIncome += tx.amount;
+    let monthlyIncome = 0;
+    let monthlyExpenses = 0;
+    const categoryMap = new Map<string, { id: string; name: string; amount: number; color?: string }>();
+
+    transactions.forEach((tx) => {
+      // EXCLUDE is_adjustment = true rows from all financial aggregates
+      if (tx.is_adjustment) {
+        return;
       }
-    } else {
-      if (isThisMonth) {
-        monthlyExpenses += tx.amount;
+
+      const txDate = new Date(tx.date || tx.created_at || '');
+      const isThisMonth =
+        !isNaN(txDate.getTime()) &&
+        txDate.getFullYear() === currentYear &&
+        txDate.getMonth() === currentMonth;
+
+      if (tx.type === 'income') {
+        if (isThisMonth) {
+          monthlyIncome += tx.amount;
+        }
+      } else {
+        if (isThisMonth) {
+          monthlyExpenses += tx.amount;
+        }
+
+        // Group by category from category join or find in loaded categories
+        const catId = tx.category_id || tx.category?.id;
+        const matchedCat = categories.find((c) => c.id === catId);
+        const catName = matchedCat?.name || tx.category?.name || 'Uncategorized';
+        const catColor = matchedCat?.color || tx.category?.color;
+
+        const prev = categoryMap.get(catName) || {
+          id: catId || catName,
+          name: catName,
+          amount: 0,
+          color: catColor,
+        };
+        prev.amount += tx.amount;
+        categoryMap.set(catName, prev);
       }
-
-      // Group by category from category join or find in loaded categories
-      const catId = tx.category_id || tx.category?.id;
-      const matchedCat = categories.find((c) => c.id === catId);
-      const catName = matchedCat?.name || tx.category?.name || 'Uncategorized';
-      const catColor = matchedCat?.color || tx.category?.color;
-
-      const prev = categoryMap.get(catName) || {
-        id: catId || catName,
-        name: catName,
-        amount: 0,
-        color: catColor,
-      };
-      prev.amount += tx.amount;
-      categoryMap.set(catName, prev);
-    }
-  });
-
-  // Calculate category percentages
-  const categorySpending: CategorySpending[] = [];
-  let index = 0;
-  categoryMap.forEach((val) => {
-    const pct = monthlyExpenses > 0 ? Math.round((val.amount / monthlyExpenses) * 100) : 0;
-    categorySpending.push({
-      categoryId: val.id,
-      name: val.name,
-      amount: val.amount,
-      percentage: pct,
-      color: val.color || CATEGORY_COLORS[index % CATEGORY_COLORS.length],
     });
-    index++;
-  });
 
-  // Sum real budget limits defined on categories table
-  const totalCategoryBudget = categories.reduce((sum, cat) => {
-    const limit = Number(cat.budget_limit) || 0;
-    return sum + limit;
-  }, 0);
+    // Calculate category percentages
+    const categorySpending: CategorySpending[] = [];
+    let index = 0;
+    categoryMap.forEach((val) => {
+      const pct = monthlyExpenses > 0 ? Math.round((val.amount / monthlyExpenses) * 100) : 0;
+      categorySpending.push({
+        categoryId: val.id,
+        name: val.name,
+        amount: val.amount,
+        percentage: pct,
+        color: val.color || CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+      });
+      index++;
+    });
 
-  const hasBudget = totalCategoryBudget > 0;
-  const targetBudget = hasBudget ? totalCategoryBudget : null;
-  const spent = monthlyExpenses;
-  const spentPercentage = hasBudget && targetBudget! > 0 ? Math.min(100, Math.round((spent / targetBudget!) * 100)) : null;
+    // Sum real budget limits defined on categories table
+    const totalCategoryBudget = categories.reduce((sum, cat) => {
+      const limit = Number(cat.budget_limit) || 0;
+      return sum + limit;
+    }, 0);
 
-  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-  const daysRemaining = Math.max(1, daysInMonth - now.getDate());
-  const leftInBudget = hasBudget && targetBudget !== null ? Math.max(0, targetBudget - spent) : null;
-  const safeDailyCap = hasBudget && leftInBudget !== null ? Math.round(leftInBudget / daysRemaining) : null;
+    const hasBudget = totalCategoryBudget > 0;
+    const targetBudget = hasBudget ? totalCategoryBudget : null;
+    const spent = monthlyExpenses;
+    const spentPercentage =
+      hasBudget && targetBudget! > 0 ? Math.min(100, Math.round((spent / targetBudget!) * 100)) : null;
 
-  const metrics: MonthlyBudgetMetrics = {
-    totalBalance: computedTotalBalance,
-    monthlyIncome,
-    monthlyExpenses,
-    targetBudget,
-    spent,
-    spentPercentage,
-    safeDailyCap,
-    leftInBudget,
-    hasBudget,
-    categorySpending,
-    recentTransactions: transactions,
-    wallets: balances,
-  };
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysRemaining = Math.max(1, daysInMonth - now.getDate());
+    const leftInBudget = hasBudget && targetBudget !== null ? Math.max(0, targetBudget - spent) : null;
+    const safeDailyCap = hasBudget && leftInBudget !== null ? Math.round(leftInBudget / daysRemaining) : null;
+
+    return {
+      totalBalance: computedTotalBalance,
+      monthlyIncome,
+      monthlyExpenses,
+      targetBudget,
+      spent,
+      spentPercentage,
+      safeDailyCap,
+      leftInBudget,
+      hasBudget,
+      categorySpending,
+      recentTransactions: transactions,
+      wallets: balances,
+    };
+  }, [balances, categories, transactions]);
 
   // Provide dataUpdatedAt timestamp from query
   const dataUpdatedAt = Math.max(
@@ -429,7 +434,6 @@ export function useCreateWallet() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 }
@@ -472,7 +476,6 @@ export function useUpdateWallet() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 }
@@ -548,7 +551,6 @@ export function useUpdateCategoryBudget() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 }
