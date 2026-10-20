@@ -7,6 +7,7 @@ import Animated, {
   withSequence,
   withTiming,
   withSpring,
+  withDelay,
   Easing,
   interpolate,
   Extrapolation,
@@ -31,8 +32,6 @@ import { theme } from '../theme';
 export type FocusedField = 'name' | 'email' | 'password' | null;
 
 interface AuthHeroProps {
-  focusedField: FocusedField;
-  isFormValid: boolean;
   errorTrigger?: number;
   successTrigger?: number;
 }
@@ -146,9 +145,7 @@ const ChartSvg = memo(({ bounceAnimStyle }: { bounceAnimStyle: any }) => (
   </Animated.View>
 ));
 
-export function AuthHero({
-  focusedField,
-  isFormValid,
+function AuthHeroComponent({
   errorTrigger = 0,
   successTrigger = 0,
 }: AuthHeroProps) {
@@ -164,12 +161,18 @@ export function AuthHero({
   const panX = useSharedValue(0);
   const panY = useSharedValue(0);
 
-  // Avatar eye and gesture shared values
-  const pupilX = useSharedValue(0);
-  const pupilY = useSharedValue(0);
-  const handCoverProgress = useSharedValue(0); // 0 = hands down, 1 = covering eyes
-  const blinkScale = useSharedValue(1);
-  const smileScale = useSharedValue(1);
+  // Staggered breathing scale pulse (~1.00 to 1.03) per avatar on UI thread
+  const breathe1 = useSharedValue(1);
+  const breathe2 = useSharedValue(1);
+  const breathe3 = useSharedValue(1);
+  const breathe4 = useSharedValue(1);
+
+  // Staggered quick eye blinks (scaleY close/open) per avatar on UI thread
+  const blink1 = useSharedValue(1);
+  const blink2 = useSharedValue(1);
+  const blink3 = useSharedValue(1);
+  const blink4 = useSharedValue(1);
+
   const headShakeX = useSharedValue(0);
   const jumpY = useSharedValue(0);
   const coinBurstOpacity = useSharedValue(0);
@@ -201,11 +204,9 @@ export function AuthHero({
   const floatChartY = useSharedValue(0);
   const floatChartR = useSharedValue(0);
 
-  // Initialize looping float animations - pause when keyboard/input is focused to preserve 90 FPS
+  // Initialize looping float animations on UI thread
   useEffect(() => {
-    const isTyping = focusedField !== null;
-
-    if (reduceMotion || isTyping) {
+    if (reduceMotion) {
       cancelAnimation(floatCoinY);
       cancelAnimation(floatCoinR);
       cancelAnimation(floatWalletY);
@@ -356,47 +357,107 @@ export function AuthHero({
       cancelAnimation(floatChartY);
       cancelAnimation(floatChartR);
     };
-  }, [reduceMotion, focusedField]);
-
-  // Periodic random blinking
-  useEffect(() => {
-    if (reduceMotion) return;
-    const interval = setInterval(() => {
-      blinkScale.value = withSequence(
-        withTiming(0.1, { duration: 75 }),
-        withTiming(1, { duration: 90 })
-      );
-    }, 3800);
-    return () => clearInterval(interval);
   }, [reduceMotion]);
 
-  // Handle focused field glance & eye covering
+  // Staggered breathing & blinking per avatar on UI thread
   useEffect(() => {
-    if (focusedField === 'name') {
-      pupilX.value = withSpring(-4, { damping: 14 });
-      pupilY.value = withSpring(0, { damping: 14 });
-      handCoverProgress.value = withSpring(0, { damping: 15 });
-    } else if (focusedField === 'email') {
-      pupilX.value = withSpring(0, { damping: 14 });
-      pupilY.value = withSpring(1.5, { damping: 14 });
-      handCoverProgress.value = withSpring(0, { damping: 15 });
-    } else if (focusedField === 'password') {
-      // Hands cover eyes!
-      pupilX.value = withSpring(0, { damping: 14 });
-      pupilY.value = withSpring(0, { damping: 14 });
-      handCoverProgress.value = withSpring(1, { damping: 12 });
-    } else {
-      // Idle
-      pupilX.value = withSpring(0, { damping: 14 });
-      pupilY.value = withSpring(0, { damping: 14 });
-      handCoverProgress.value = withSpring(0, { damping: 15 });
+    if (reduceMotion) {
+      breathe1.value = 1;
+      breathe2.value = 1;
+      breathe3.value = 1;
+      breathe4.value = 1;
+      blink1.value = 1;
+      blink2.value = 1;
+      blink3.value = 1;
+      blink4.value = 1;
+      return;
     }
-  }, [focusedField]);
 
-  // Form validity smile widening
-  useEffect(() => {
-    smileScale.value = withSpring(isFormValid ? 1.35 : 1, { damping: 14 });
-  }, [isFormValid]);
+    // Staggered gentle breathing scale pulse (~1.00 to 1.03) per avatar
+    breathe1.value = withRepeat(
+      withSequence(
+        withTiming(1.028, { duration: 2200, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1.0, { duration: 2200, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      true
+    );
+
+    breathe2.value = withRepeat(
+      withSequence(
+        withTiming(1.024, { duration: 2700, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1.0, { duration: 2700, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      true
+    );
+
+    breathe3.value = withRepeat(
+      withSequence(
+        withTiming(1.03, { duration: 3100, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1.0, { duration: 3100, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      true
+    );
+
+    breathe4.value = withRepeat(
+      withSequence(
+        withTiming(1.026, { duration: 2500, easing: Easing.inOut(Easing.quad) }),
+        withTiming(1.0, { duration: 2500, easing: Easing.inOut(Easing.quad) })
+      ),
+      -1,
+      true
+    );
+
+    // Staggered quick eye blinks (close/open) per avatar on UI thread
+    blink1.value = withRepeat(
+      withSequence(
+        withDelay(3200, withTiming(0.1, { duration: 75 })),
+        withTiming(1, { duration: 85 })
+      ),
+      -1,
+      false
+    );
+
+    blink2.value = withRepeat(
+      withSequence(
+        withDelay(4400, withTiming(0.1, { duration: 75 })),
+        withTiming(1, { duration: 85 })
+      ),
+      -1,
+      false
+    );
+
+    blink3.value = withRepeat(
+      withSequence(
+        withDelay(5100, withTiming(0.1, { duration: 75 })),
+        withTiming(1, { duration: 85 })
+      ),
+      -1,
+      false
+    );
+
+    blink4.value = withRepeat(
+      withSequence(
+        withDelay(3800, withTiming(0.1, { duration: 75 })),
+        withTiming(1, { duration: 85 })
+      ),
+      -1,
+      false
+    );
+
+    return () => {
+      cancelAnimation(breathe1);
+      cancelAnimation(breathe2);
+      cancelAnimation(breathe3);
+      cancelAnimation(breathe4);
+      cancelAnimation(blink1);
+      cancelAnimation(blink2);
+      cancelAnimation(blink3);
+      cancelAnimation(blink4);
+    };
+  }, [reduceMotion]);
 
   // Error head shake
   useEffect(() => {
@@ -529,38 +590,36 @@ export function AuthHero({
     ],
   }));
 
-  // Pupil glances
-  const pupilStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: pupilX.value },
-      { translateY: pupilY.value },
-      { scaleY: blinkScale.value },
-    ],
+  // Character 1: Pink Blob breathing & blinking
+  const avatar1AnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breathe1.value }],
+  }));
+  const pupil1Style = useAnimatedStyle(() => ({
+    transform: [{ scaleY: blink1.value }],
   }));
 
-  // Eye covering hands
-  const handsStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateY: interpolate(
-          handCoverProgress.value,
-          [0, 1],
-          [22, -2],
-          Extrapolation.CLAMP
-        ),
-      },
-    ],
-    opacity: interpolate(
-      handCoverProgress.value,
-      [0, 0.2, 1],
-      [0, 0.7, 1],
-      Extrapolation.CLAMP
-    ),
+  // Character 2: Mint Blob breathing & blinking
+  const avatar2AnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breathe2.value }],
+  }));
+  const pupil2Style = useAnimatedStyle(() => ({
+    transform: [{ scaleY: blink2.value }],
   }));
 
-  // Smile expansion style
-  const smileAnimStyle = useAnimatedStyle(() => ({
-    transform: [{ scaleX: smileScale.value }],
+  // Character 3: Lavender Blob breathing & blinking
+  const avatar3AnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breathe3.value }],
+  }));
+  const pupil3Style = useAnimatedStyle(() => ({
+    transform: [{ scaleY: blink3.value }],
+  }));
+
+  // Character 4: Peach Blob breathing & blinking
+  const avatar4AnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: breathe4.value }],
+  }));
+  const pupil4Style = useAnimatedStyle(() => ({
+    transform: [{ scaleY: blink4.value }],
   }));
 
   // Success coin burst
@@ -655,7 +714,7 @@ export function AuthHero({
         {/* 4 Original Peeking Blob Characters */}
         <Animated.View style={[styles.avatarsRow, avatarGroupStyle]}>
           {/* Character 1: Electric Pink Blob */}
-          <View style={styles.blobPink}>
+          <Animated.View style={[styles.blobPink, avatar1AnimStyle]}>
             <Svg width="54" height="46" viewBox="0 0 54 46">
               <Defs>
                 <LinearGradient id="pinkBlobGrad" x1="0" y1="0" x2="0" y2="1">
@@ -670,28 +729,22 @@ export function AuthHero({
               <Circle cx="40" cy="30" r="3" fill={theme.colors.primaryContainer} opacity="0.3" />
             </Svg>
 
-            {/* Glanceable Animated Pupils */}
-            <Animated.View style={[styles.pupilsPinkContainer, pupilStyle]}>
+            {/* Blinking Animated Pupils */}
+            <Animated.View style={[styles.pupilsPinkContainer, pupil1Style]}>
               <View style={styles.pupilDot} />
               <View style={styles.pupilDot} />
             </Animated.View>
 
             {/* Mouth / Smile */}
-            <Animated.View style={[styles.mouthPink, smileAnimStyle]}>
+            <View style={styles.mouthPink}>
               <Svg width="14" height="6" viewBox="0 0 14 6">
                 <Path d="M 1 1 Q 7 7 13 1" stroke={theme.colors.onSurface} strokeWidth="1.8" fill="none" strokeLinecap="round" />
               </Svg>
-            </Animated.View>
-
-            {/* Eye Covering Hands */}
-            <Animated.View style={[styles.handsPink, handsStyle]}>
-              <View style={styles.handLeft} />
-              <View style={styles.handRight} />
-            </Animated.View>
-          </View>
+            </View>
+          </Animated.View>
 
           {/* Character 2: Mint / Calm Blob */}
-          <View style={styles.blobMint}>
+          <Animated.View style={[styles.blobMint, avatar2AnimStyle]}>
             <Svg width="48" height="38" viewBox="0 0 48 38">
               <Defs>
                 <LinearGradient id="mintBlobGrad" x1="0" y1="0" x2="0" y2="1">
@@ -704,25 +757,20 @@ export function AuthHero({
               <Circle cx="35" cy="24" r="2.5" fill={theme.colors.outlineVariant} opacity="0.5" />
             </Svg>
 
-            <Animated.View style={[styles.pupilsMintContainer, pupilStyle]}>
+            <Animated.View style={[styles.pupilsMintContainer, pupil2Style]}>
               <View style={styles.pupilDotMint} />
               <View style={styles.pupilDotMint} />
             </Animated.View>
 
-            <Animated.View style={[styles.mouthMint, smileAnimStyle]}>
+            <View style={styles.mouthMint}>
               <Svg width="12" height="5" viewBox="0 0 12 5">
                 <Path d="M 1 1 Q 6 6 11 1" stroke={theme.colors.onSurface} strokeWidth="1.5" fill="none" strokeLinecap="round" />
               </Svg>
-            </Animated.View>
-
-            <Animated.View style={[styles.handsMint, handsStyle]}>
-              <View style={styles.handLeftMint} />
-              <View style={styles.handRightMint} />
-            </Animated.View>
-          </View>
+            </View>
+          </Animated.View>
 
           {/* Character 3: Lavender / Curious Blob */}
-          <View style={styles.blobLavender}>
+          <Animated.View style={[styles.blobLavender, avatar3AnimStyle]}>
             <Svg width="56" height="50" viewBox="0 0 56 50">
               <Defs>
                 <LinearGradient id="lavenderGrad" x1="0" y1="0" x2="0" y2="1">
@@ -736,25 +784,20 @@ export function AuthHero({
               <Circle cx="43" cy="28" r="3" fill={theme.colors.tertiary} opacity="0.3" />
             </Svg>
 
-            <Animated.View style={[styles.pupilsLavenderContainer, pupilStyle]}>
+            <Animated.View style={[styles.pupilsLavenderContainer, pupil3Style]}>
               <View style={styles.pupilDotLavender} />
               <View style={styles.pupilDotLavender} />
             </Animated.View>
 
-            <Animated.View style={[styles.mouthLavender, smileAnimStyle]}>
+            <View style={styles.mouthLavender}>
               <Svg width="14" height="6" viewBox="0 0 14 6">
                 <Path d="M 2 1 Q 7 6 12 1" stroke={theme.colors.surfaceContainerLowest} strokeWidth="1.8" fill="none" strokeLinecap="round" />
               </Svg>
-            </Animated.View>
-
-            <Animated.View style={[styles.handsLavender, handsStyle]}>
-              <View style={styles.handLeftLavender} />
-              <View style={styles.handRightLavender} />
-            </Animated.View>
-          </View>
+            </View>
+          </Animated.View>
 
           {/* Character 4: Warm Peach Blob */}
-          <View style={styles.blobPeach}>
+          <Animated.View style={[styles.blobPeach, avatar4AnimStyle]}>
             <Svg width="50" height="42" viewBox="0 0 50 42">
               <Defs>
                 <LinearGradient id="peachGrad" x1="0" y1="0" x2="0" y2="1">
@@ -768,27 +811,24 @@ export function AuthHero({
               <Circle cx="37" cy="26" r="2.5" fill={theme.colors.primary} opacity="0.25" />
             </Svg>
 
-            <Animated.View style={[styles.pupilsPeachContainer, pupilStyle]}>
+            <Animated.View style={[styles.pupilsPeachContainer, pupil4Style]}>
               <View style={styles.pupilDot} />
               <View style={styles.pupilDot} />
             </Animated.View>
 
-            <Animated.View style={[styles.mouthPeach, smileAnimStyle]}>
+            <View style={styles.mouthPeach}>
               <Svg width="12" height="5" viewBox="0 0 12 5">
                 <Path d="M 1 1 Q 6 5 11 1" stroke={theme.colors.primaryDark} strokeWidth="1.6" fill="none" strokeLinecap="round" />
               </Svg>
-            </Animated.View>
-
-            <Animated.View style={[styles.handsPeach, handsStyle]}>
-              <View style={styles.handLeftPeach} />
-              <View style={styles.handRightPeach} />
-            </Animated.View>
-          </View>
+            </View>
+          </Animated.View>
         </Animated.View>
       </Animated.View>
     </GestureDetector>
   );
 }
+
+export const AuthHero = memo(AuthHeroComponent);
 
 const styles = StyleSheet.create({
   container: {
