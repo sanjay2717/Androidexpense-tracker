@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { ShieldCheckIcon, ChevronRightIcon, PersonOutlineIcon } from '../src/components/Icons';
 import { useAuth } from '../src/lib/auth';
 import { theme } from '../src/theme';
+import { safeBack } from '../src/lib/nav';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -14,7 +15,7 @@ export default function SettingsScreen() {
 
   const handleDone = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    safeBack('/(tabs)');
   };
 
   const displayName = user?.user_metadata?.display_name || (isAnonymous ? 'Guest User' : 'Account Holder');
@@ -50,7 +51,6 @@ export default function SettingsScreen() {
             onPress: async () => {
               try {
                 await signOut();
-                router.back();
               } catch (err: any) {
                 Alert.alert('Error', err.message);
               }
@@ -77,7 +77,6 @@ export default function SettingsScreen() {
             onPress: async () => {
               try {
                 await signOut();
-                router.back();
               } catch (err: any) {
                 Alert.alert('Error Signing Out', err.message || 'Please try again.');
               }

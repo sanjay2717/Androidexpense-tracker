@@ -25,6 +25,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { theme } from '../src/theme';
+import { safeBack } from '../src/lib/nav';
 import {
   fetchCategories,
   fetchWalletBalances,
@@ -227,7 +228,7 @@ export default function AddTransactionScreen() {
   const handleDismiss = () => {
     sheetTranslateY.set(
       withTiming(700, { duration: 250 }, () => {
-        runOnJS(router.back)();
+        runOnJS(safeBack)('/(tabs)');
       })
     );
     sheetOpacity.set(withTiming(0, { duration: 200 }));

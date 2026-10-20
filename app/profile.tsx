@@ -24,7 +24,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../src/lib/auth';
-import { fetchWalletBalances, fetchTransactions } from '../src/lib/api';
+import { useWalletBalances, useTransactions } from '../src/lib/api';
 import { supabase } from '../src/lib/supabase';
 import {
   ArrowBackIcon,
@@ -39,6 +39,7 @@ import {
   ArrowForwardIcon,
 } from '../src/components/Icons';
 import { theme } from '../src/theme';
+import { safeBack } from '../src/lib/nav';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -78,25 +79,26 @@ export default function ProfileScreen() {
     transform: [{ translateY: (1 - entranceAnim.value) * 26 }],
   }));
 
-  // Fetch real counts from existing queries
-  const { data: wallets = [] } = useQuery({
-    queryKey: ['wallet_balances'],
-    queryFn: fetchWalletBalances,
-  });
+  const userId = user?.id;
 
-  const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: fetchTransactions,
-  });
+  // Fetch real counts from existing auth-gated queries
+  const { data: wallets = [] } = useWalletBalances();
+  const { data: transactions = [] } = useTransactions();
 
   const { data: goalsCount = 0 } = useQuery({
-    queryKey: ['goals-count'],
+    queryKey: ['goals-count', userId],
     queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return 0;
       const { count, error } = await supabase
         .from('goals')
         .select('*', { count: 'exact', head: true });
+      if (error && !error.message?.includes('permission denied')) {
+        console.warn('Goals count error:', error.message);
+      }
       return error ? 0 : (count ?? 0);
     },
+    enabled: !!userId,
   });
 
   const appVersion = Constants.expoConfig?.version || '1.0.0';
@@ -134,7 +136,7 @@ export default function ProfileScreen() {
 
   const handleBack = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
+    safeBack('/(tabs)');
   };
 
   const openEditName = () => {

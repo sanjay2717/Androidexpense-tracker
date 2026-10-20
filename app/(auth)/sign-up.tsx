@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  BackHandler,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -26,8 +27,10 @@ import {
   ArrowForwardIcon,
   PersonOutlineIcon,
   ShieldCheckIcon,
+  ChevronLeftIcon,
 } from '../../src/components/Icons';
 import { theme } from '../../src/theme';
+import { safeBack } from '../../src/lib/nav';
 
 export default function SignUpScreen() {
   const router = useRouter();
@@ -52,6 +55,19 @@ export default function SignUpScreen() {
   const isFormValid = useMemo(() => {
     return name.trim().length > 0 && isEmailValid && password.length >= 8;
   }, [name, isEmailValid, password]);
+
+  const handleBack = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    safeBack(isAnonymous ? '/(tabs)' : '/(auth)/sign-in');
+  };
+
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      safeBack(isAnonymous ? '/(tabs)' : '/(auth)/sign-in');
+      return true;
+    });
+    return () => sub.remove();
+  }, [isAnonymous]);
 
   const handleSignUp = async () => {
     setErrorMessage(null);
@@ -205,6 +221,18 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* Top Back Action Bar */}
+        <View style={styles.topBar}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleBack}
+            activeOpacity={0.7}
+            accessibilityLabel="Go back"
+          >
+            <ChevronLeftIcon size={22} color={theme.colors.onSurface} />
+          </TouchableOpacity>
+        </View>
+
         {/* Brand Header */}
         <View style={styles.brandContainer}>
           <View style={styles.wordmarkRow}>
@@ -218,8 +246,6 @@ export default function SignUpScreen() {
 
         {/* Interactive Avatars & Floating Stage */}
         <AuthHero
-          focusedField={focusedField}
-          isFormValid={isFormValid || isLoading}
           errorTrigger={errorTrigger}
           successTrigger={successTrigger}
         />
@@ -423,6 +449,20 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: theme.spacing.margin,
     justifyContent: 'space-between',
+  },
+  topBar: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  backButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: theme.colors.surfaceContainerLow,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brandContainer: {
     alignItems: 'center',

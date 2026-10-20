@@ -192,8 +192,6 @@ export default function SignInScreen() {
 
         {/* Interactive Avatars & Floating Stage */}
         <AuthHero
-          focusedField={focusedField}
-          isFormValid={isFormValid || isLoading}
           errorTrigger={errorTrigger}
           successTrigger={successTrigger}
         />
