@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from './supabase';
-import { fetchCategories } from './api';
+import { useAuth } from './auth';
+import { fetchCategories, useCategories } from './api';
 import { Transaction, Category } from '../types/database';
 import { theme } from '../theme';
 
@@ -41,6 +42,167 @@ export interface ReportInsight {
   title: string;
   description: string;
   highlight?: string;
+}
+
+export interface NiceScale {
+  yMax: number;
+  step: number;
+  ticks: number[];
+  formattedTicks: string[];
+}
+
+/**
+ * Clean 1/2/5 step nice scaling with NO fixed minimum floor.
+ * E.g., max 60 gives ticks [0, 30, 60]; max 3800 gives ticks [0, 2000, 4000].
+ */
+export function getNiceScale(rawMax: number): NiceScale {
+  if (rawMax <= 0) {
+    return {
+      yMax: 0,
+      step: 0,
+      ticks: [0],
+      formattedTicks: ['₹0'],
+    };
+  }
+
+  // Find clean step such that 2 * step >= rawMax
+  const targetHalf = rawMax / 2;
+  const exponent = Math.floor(Math.log10(targetHalf > 0 ? targetHalf : 1));
+  const mults = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+
+  let bestStep = Infinity;
+  let bestYMax = Infinity;
+
+  for (let exp = exponent - 1; exp <= exponent + 2; exp++) {
+    const base = Math.pow(10, exp);
+    for (const c of mults) {
+      const step = Math.round(c * base);
+      const yMax = step * 2;
+      if (yMax >= rawMax && yMax < bestYMax) {
+        bestYMax = yMax;
+        bestStep = step;
+      }
+    }
+  }
+
+  if (bestYMax === Infinity) {
+    bestStep = Math.ceil(rawMax / 2);
+    bestYMax = bestStep * 2;
+  }
+
+  const ticks = [0, bestStep, bestYMax];
+  const formattedTicks = ticks.map(formatTickValue);
+
+  return {
+    yMax: bestYMax,
+    step: bestStep,
+    ticks,
+    formattedTicks,
+  };
+}
+
+export function formatTickValue(val: number): string {
+  if (val === 0) return '₹0';
+  if (val >= 100000) {
+    const l = val / 100000;
+    return `₹${Number.isInteger(l) ? l : l.toFixed(1)}L`;
+  }
+  if (val >= 1000) {
+    const k = val / 1000;
+    return `₹${Number.isInteger(k) ? k : k.toFixed(1)}k`;
+  }
+  return `₹${val}`;
+}
+
+/**
+ * Manual Indian number formatting worklet (e.g. 100000 -> 1,00,000; 1250 -> 1,250)
+ * Operates purely on Hermes/JSC UI thread without Intl dependency.
+ */
+export function formatIndianCurrencyWorklet(val: number, prefix: string = '₹'): string {
+  'worklet';
+  const isNegative = val < 0;
+  const absVal = Math.round(Math.abs(val));
+  const s = String(absVal);
+  const n = s.length;
+
+  if (n <= 3) {
+    return (isNegative ? '-' : '') + prefix + s;
+  }
+
+  const lastThree = s.substring(n - 3);
+  let otherNumbers = s.substring(0, n - 3);
+  let res = '';
+  while (otherNumbers.length > 2) {
+    res = ',' + otherNumbers.substring(otherNumbers.length - 2) + res;
+    otherNumbers = otherNumbers.substring(0, otherNumbers.length - 2);
+  }
+  return (isNegative ? '-' : '') + prefix + otherNumbers + res + ',' + lastThree;
+}
+
+/**
+ * Fritsch-Carlson Monotone Cubic Spline Interpolation
+ * Guarantees the curve never overshoots or dips below zero between non-negative points.
+ */
+export function buildMonotoneCubicPath(points: { x: number; y: number }[]): string {
+  const n = points.length;
+  if (n === 0) return '';
+  if (n === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+  if (n === 2) {
+    return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)} L ${points[1].x.toFixed(1)} ${points[1].y.toFixed(1)}`;
+  }
+
+  // 1. Calculate secant slopes (delta)
+  const deltas: number[] = new Array(n - 1);
+  const dxs: number[] = new Array(n - 1);
+  for (let i = 0; i < n - 1; i++) {
+    const dx = points[i + 1].x - points[i].x;
+    dxs[i] = dx;
+    deltas[i] = dx === 0 ? 0 : (points[i + 1].y - points[i].y) / dx;
+  }
+
+  // 2. Initialize tangents (m)
+  const m: number[] = new Array(n);
+  m[0] = deltas[0];
+  m[n - 1] = deltas[n - 2];
+
+  for (let i = 1; i < n - 1; i++) {
+    if (deltas[i - 1] * deltas[i] <= 0) {
+      m[i] = 0;
+    } else {
+      m[i] = (deltas[i - 1] + deltas[i]) / 2;
+    }
+  }
+
+  // 3. Fritsch-Carlson adjustments
+  for (let i = 0; i < n - 1; i++) {
+    if (deltas[i] === 0) {
+      m[i] = 0;
+      m[i + 1] = 0;
+    } else {
+      const alpha = m[i] / deltas[i];
+      const beta = m[i + 1] / deltas[i];
+      const dist = alpha * alpha + beta * beta;
+      if (dist > 9) {
+        const tau = 3 / Math.sqrt(dist);
+        m[i] = tau * alpha * deltas[i];
+        m[i + 1] = tau * beta * deltas[i];
+      }
+    }
+  }
+
+  // 4. Construct SVG cubic Bezier path
+  let path = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+  for (let i = 0; i < n - 1; i++) {
+    const h = dxs[i] / 3;
+    const cp1x = points[i].x + h;
+    const cp1y = points[i].y + m[i] * h;
+    const cp2x = points[i + 1].x - h;
+    const cp2y = points[i + 1].y - m[i + 1] * h;
+
+    path += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${points[i + 1].x.toFixed(1)} ${points[i + 1].y.toFixed(1)}`;
+  }
+
+  return path;
 }
 
 export interface MonthlyReportMetrics {
@@ -119,6 +281,11 @@ export async function fetchReportTransactions(startDate: string): Promise<Transa
     return [];
   }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return [];
+  }
+
   try {
     const { data, error } = await supabase
       .from('transactions')
@@ -139,7 +306,9 @@ export async function fetchReportTransactions(startDate: string): Promise<Transa
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.warn('Error fetching report transactions:', error.message);
+      if (!error.message?.includes('permission denied')) {
+        console.warn('Error fetching report transactions:', error.message);
+      }
       return [];
     }
 
@@ -427,6 +596,9 @@ export async function fetchReportPayload(startDate: string): Promise<{
  * Memoizes all computed metrics cleanly client-side.
  */
 export function useReportData(selectedDate: Date) {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   const selectedYear = selectedDate.getFullYear();
   const selectedMonth = selectedDate.getMonth();
 
@@ -438,23 +610,29 @@ export function useReportData(selectedDate: Date) {
     return `${y}-${m}-01`;
   }, [selectedYear, selectedMonth]);
 
-  const reportQuery = useQuery({
-    queryKey: ['report-payload', startDateStr],
-    queryFn: () => fetchReportPayload(startDateStr),
-    staleTime: 1000 * 60 * 2, // 2 minutes
+  const categoriesQuery = useCategories();
+
+  const transactionsQuery = useQuery<Transaction[]>({
+    queryKey: ['transactions', 'report', userId, startDateStr],
+    queryFn: () => fetchReportTransactions(startDateStr),
+    enabled: !!userId,
+    staleTime: 1000 * 30,
   });
 
   const metrics: MonthlyReportMetrics = useMemo(() => {
-    const transactions = reportQuery.data?.transactions || [];
-    const categories = reportQuery.data?.categories || [];
+    const transactions = transactionsQuery.data || [];
+    const categories = categoriesQuery.data || [];
     return computeReportMetrics(transactions, categories, selectedDate);
-  }, [reportQuery.data, selectedDate]);
+  }, [transactionsQuery.data, categoriesQuery.data, selectedDate]);
 
   return {
     metrics,
-    isLoading: reportQuery.isLoading,
-    isError: reportQuery.isError,
-    error: reportQuery.error,
-    refetch: reportQuery.refetch,
+    isLoading: transactionsQuery.isLoading || categoriesQuery.isLoading,
+    isError: transactionsQuery.isError || categoriesQuery.isError,
+    error: transactionsQuery.error || categoriesQuery.error,
+    refetch: () => {
+      transactionsQuery.refetch();
+      categoriesQuery.refetch();
+    },
   };
 }

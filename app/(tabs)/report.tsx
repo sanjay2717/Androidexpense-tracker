@@ -9,9 +9,10 @@ import {
   TextInput,
   Dimensions,
   Platform,
+  AccessibilityInfo,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import Svg, {
@@ -31,7 +32,9 @@ import Animated, {
   useAnimatedProps,
   withTiming,
   withSpring,
+  withDelay,
   Easing,
+  SharedValue,
 } from 'react-native-reanimated';
 
 import {
@@ -41,7 +44,12 @@ import {
   MonthBarItem,
   DaySpendingItem,
   ReportInsight,
+  getNiceScale,
+  buildMonotoneCubicPath,
+  NiceScale,
+  formatIndianCurrencyWorklet,
 } from '../../src/lib/reportData';
+import { DonutChart } from '../../src/components/DonutChart';
 import {
   CalendarIcon,
   ChevronLeftIcon,
@@ -69,11 +77,13 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 interface SixMonthBarChartProps {
   data: MonthBarItem[];
   onSelectMonth: (year: number, month: number) => void;
+  growth: SharedValue<number>;
 }
 
 const SixMonthBarChart = memo(function SixMonthBarChart({
   data,
   onSelectMonth,
+  growth,
 }: SixMonthBarChartProps) {
   const chartHeight = 160;
   const chartWidth = 320;
@@ -82,14 +92,14 @@ const SixMonthBarChart = memo(function SixMonthBarChart({
   const clusterWidth = 52;
   const startX = 10;
 
-  // Compute maximum value for scaling
+  // Compute maximum value for scaling using nice scale
   const maxVal = useMemo(() => {
-    let m = 1000;
+    let m = 0;
     data.forEach((d) => {
       if (d.income > m) m = d.income;
       if (d.expenses > m) m = d.expenses;
     });
-    return Math.ceil(m / 1000) * 1000;
+    return m > 0 ? getNiceScale(m).yMax : 1000;
   }, [data]);
 
   const formatGridVal = (v: number) => {
@@ -104,8 +114,16 @@ const SixMonthBarChart = memo(function SixMonthBarChart({
     { y: 110, val: Math.round(maxVal * 0.25) },
   ];
 
+  const animatedBarsStyle = useAnimatedStyle(() => ({
+    opacity: growth.value,
+    transform: [
+      { scaleY: 0.3 + 0.7 * growth.value },
+      { translateY: 6 * (1 - growth.value) },
+    ],
+  }));
+
   return (
-    <View style={styles.chartContainer}>
+    <Animated.View style={[styles.chartContainer, animatedBarsStyle]}>
       <Svg width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
         {/* Horizontal Reference Gridlines */}
         {gridLevels.map((lvl, idx) => (
@@ -223,105 +241,11 @@ const SixMonthBarChart = memo(function SixMonthBarChart({
           );
         })}
       </Svg>
-    </View>
-  );
-});
-
-// -----------------------------------------------------------------------------
-// 2. Category Donut Chart Component
-// -----------------------------------------------------------------------------
-interface CategoryDonutChartProps {
-  categories: CategoryOutflowItem[];
-  totalExpenses: number;
-}
-
-const CategoryDonutChart = memo(function CategoryDonutChart({
-  categories,
-  totalExpenses,
-}: CategoryDonutChartProps) {
-  const size = 160;
-  const center = size / 2;
-  const strokeWidth = 18;
-  const radius = 58;
-  const circumference = 2 * Math.PI * radius; // ~364.42
-
-  const topCategory = categories[0];
-
-  const scale = useSharedValue(0.92);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    scale.value = withTiming(1, { duration: 450, easing: Easing.out(Easing.back(1.15)) });
-    opacity.value = withTiming(1, { duration: 350, easing: Easing.out(Easing.ease) });
-  }, [totalExpenses, categories.length]);
-
-  const animatedDonutStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  // Precompute stroke dash offsets for each category slice
-  const slices = useMemo(() => {
-    if (totalExpenses <= 0 || categories.length === 0) {
-      return [];
-    }
-
-    let accumulatedPct = 0;
-    return categories.slice(0, 6).map((item) => {
-      const sliceLength = (item.amount / totalExpenses) * circumference;
-      const offset = -(accumulatedPct * circumference);
-      accumulatedPct += item.amount / totalExpenses;
-      return {
-        ...item,
-        dashArray: `${Math.max(2, sliceLength)} ${circumference}`,
-        dashOffset: offset,
-      };
-    });
-  }, [categories, totalExpenses, circumference]);
-
-  return (
-    <Animated.View style={[styles.donutWrapper, animatedDonutStyle]}>
-      <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={styles.donutSvg}>
-        {/* Background track circle */}
-        <Circle
-          cx={center}
-          cy={center}
-          r={radius}
-          fill="transparent"
-          stroke={theme.colors.surfaceContainerLow}
-          strokeWidth={strokeWidth}
-        />
-
-        {/* Category Slices */}
-        {slices.map((slice) => (
-          <Circle
-            key={slice.categoryId}
-            cx={center}
-            cy={center}
-            r={radius}
-            fill="transparent"
-            stroke={slice.color}
-            strokeWidth={strokeWidth}
-            strokeDasharray={slice.dashArray}
-            strokeDashoffset={slice.dashOffset}
-            strokeLinecap="round"
-          />
-        ))}
-      </Svg>
-
-      {/* Center Label */}
-      <View style={styles.donutCenterLabel}>
-        <Text style={styles.donutCenterSub}>Largest</Text>
-        <Text style={styles.donutCenterTitle} numberOfLines={1}>
-          {topCategory ? topCategory.name : 'None'}
-        </Text>
-        <Text style={styles.donutCenterPct}>
-          {topCategory ? `${topCategory.percentage}%` : '0%'}
-        </Text>
-      </View>
     </Animated.View>
   );
 });
+
+// (Old CategoryDonutChart replaced with shared DonutChart component)
 
 // -----------------------------------------------------------------------------
 // 3. Category Inset List Row Component (Memoized)
@@ -378,147 +302,458 @@ const CategoryReportRow = memo(function CategoryReportRow({
 });
 
 // -----------------------------------------------------------------------------
-// 4. Daily Spending Area Curve Component
+// 4. Daily Spending Area Curve & Sparse Bar Chart Component
 // -----------------------------------------------------------------------------
 interface DailySpendingChartProps {
   days: DaySpendingItem[];
   peakDay: MonthlyReportMetrics['peakDay'];
+  selectedDate: Date;
+  drawProgress: SharedValue<number>;
+  reduceMotion: boolean;
 }
 
 const DailySpendingChart = memo(function DailySpendingChart({
   days,
   peakDay,
+  selectedDate,
+  drawProgress,
+  reduceMotion,
 }: DailySpendingChartProps) {
+  const [mode, setMode] = useState<'daily' | 'cumulative'>('daily');
+
   const chartWidth = 320;
-  const chartHeight = 120;
-  const baselineY = 112;
+  const chartHeight = 136;
+  const topY = 24;
+  const baselineY = 114;
+  const midY = (topY + baselineY) / 2; // 69
+  const plotHeight = baselineY - topY; // 90
+  const leftX = 36;
+  const rightX = 312;
+  const plotWidth = rightX - leftX; // 276
+
+  // Detect current month vs past month
+  const now = new Date();
+  const isCurrentMonth =
+    selectedDate.getFullYear() === now.getFullYear() &&
+    selectedDate.getMonth() === now.getMonth();
+  const today = now.getDate();
+
+  const daysInMonth = useMemo(() => {
+    return days.length > 0
+      ? days.length
+      : new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0).getDate();
+  }, [days.length, selectedDate]);
+
+  // For current month, plot only days up to today. Future days are not drawn as zeros.
+  const plottedDays = useMemo(() => {
+    return isCurrentMonth ? days.filter((d) => d.day <= today) : days;
+  }, [days, isCurrentMonth, today]);
+
+  // Daily Mode calculations
+  const spendingDays = useMemo(() => {
+    return plottedDays.filter((d) => d.amount > 0);
+  }, [plottedDays]);
 
   const maxDaily = useMemo(() => {
     let m = 0;
-    days.forEach((d) => {
+    plottedDays.forEach((d) => {
       if (d.amount > m) m = d.amount;
     });
-    // Dynamically scale curve so the peak day in the month reaches ~80% of chart height.
-    // Adds 25% breathing room above the peak so floating badge tag never clips.
-    return m > 0 ? m * 1.25 : 100;
-  }, [days]);
+    return m;
+  }, [plottedDays]);
 
-  // Construct smooth SVG path coordinates
-  const { pathD, areaD, peakCoords } = useMemo(() => {
-    if (days.length === 0) {
-      return { pathD: '', areaD: '', peakCoords: null };
-    }
-
-    const stepX = chartWidth / Math.max(1, days.length - 1);
-    const points = days.map((d, i) => {
-      const x = i * stepX;
-      const normalizedHeight = maxDaily > 0 ? (d.amount / maxDaily) * 82 : 0;
-      const y = Math.min(baselineY, Math.max(18, baselineY - normalizedHeight));
-      return { x, y, day: d.day, amount: d.amount };
+  // Cumulative Mode calculations
+  const cumData = useMemo(() => {
+    let running = 0;
+    const items = plottedDays.map((d) => {
+      running += d.amount;
+      return { day: d.day, amount: running, dateStr: d.dateStr };
     });
+    return { items, total: running };
+  }, [plottedDays]);
 
-    // Build Catmull-Rom or cubic Bezier path
-    let p = `M ${points[0].x} ${points[0].y}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[i === 0 ? 0 : i - 1];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[i + 2] || p2;
+  // Scaling with NO fixed minimum floor
+  const activeMax = mode === 'daily' ? maxDaily : cumData.total;
+  const niceScale = useMemo(() => {
+    return getNiceScale(activeMax);
+  }, [activeMax]);
 
-      let cp1x = p1.x + (p2.x - p0.x) / 6;
-      let cp1y = p1.y + (p2.y - p0.y) / 6;
-      let cp2x = p2.x - (p3.x - p1.x) / 6;
-      let cp2y = p2.y - (p3.y - p1.y) / 6;
+  const yMax = niceScale.yMax;
 
-      // Prevent control points from dipping below baseline on zero days
-      cp1y = Math.min(baselineY, Math.max(16, cp1y));
-      cp2y = Math.min(baselineY, Math.max(16, cp2y));
+  // Day to X helper
+  const getX = useCallback(
+    (day: number) => {
+      if (daysInMonth <= 1) return (leftX + rightX) / 2;
+      return leftX + ((day - 1) / (daysInMonth - 1)) * plotWidth;
+    },
+    [daysInMonth, leftX, rightX, plotWidth]
+  );
 
-      p += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  // Path, Area & Marker calculation
+  const { pathD, areaD, markerInfo, isSparseBars } = useMemo(() => {
+    if (activeMax === 0 || plottedDays.length === 0) {
+      return { pathD: '', areaD: '', markerInfo: null, isSparseBars: false };
     }
 
-    const a = `${p} L ${chartWidth} ${baselineY} L 0 ${baselineY} Z`;
-
-    let peak = null;
-    if (peakDay && peakDay.amount > 0) {
-      const peakIndex = days.findIndex((d) => d.day === peakDay.day);
-      if (peakIndex >= 0 && points[peakIndex]) {
-        peak = {
-          x: points[peakIndex].x,
-          y: points[peakIndex].y,
-        };
+    if (mode === 'daily') {
+      // Sparse rule: fewer than 4 days have spending -> draw rounded bars instead of spline
+      if (spendingDays.length < 4) {
+        let marker = null;
+        if (peakDay && peakDay.amount > 0) {
+          const cx = getX(peakDay.day);
+          const barH = yMax > 0 ? (peakDay.amount / yMax) * plotHeight : 0;
+          const cy = baselineY - barH;
+          marker = {
+            x: cx,
+            y: cy,
+            amount: peakDay.amount,
+            label: `₹${peakDay.amount.toLocaleString('en-IN')}`,
+          };
+        }
+        return { pathD: '', areaD: '', markerInfo: marker, isSparseBars: true };
       }
-    }
 
-    return { pathD: p, areaD: a, peakCoords: peak };
-  }, [days, peakDay, maxDaily, baselineY, chartWidth]);
+      // Spline mode (>= 4 spending days)
+      const points = plottedDays.map((d) => {
+        const x = getX(d.day);
+        const normH = yMax > 0 ? (d.amount / yMax) * plotHeight : 0;
+        const y = Math.min(baselineY, Math.max(topY, baselineY - normH));
+        return { x, y, day: d.day, amount: d.amount };
+      });
+
+      const pD = buildMonotoneCubicPath(points);
+      const aD = `${pD} L ${points[points.length - 1].x.toFixed(1)} ${baselineY} L ${points[0].x.toFixed(1)} ${baselineY} Z`;
+
+      let marker = null;
+      if (peakDay && peakDay.amount > 0) {
+        const peakIdx = plottedDays.findIndex((d) => d.day === peakDay.day);
+        if (peakIdx >= 0 && points[peakIdx]) {
+          marker = {
+            x: points[peakIdx].x,
+            y: points[peakIdx].y,
+            amount: peakDay.amount,
+            label: `₹${peakDay.amount.toLocaleString('en-IN')}`,
+          };
+        }
+      }
+
+      return { pathD: pD, areaD: aD, markerInfo: marker, isSparseBars: false };
+    } else {
+      // Cumulative mode: draw running total line
+      const points = cumData.items.map((d) => {
+        const x = getX(d.day);
+        const normH = yMax > 0 ? (d.amount / yMax) * plotHeight : 0;
+        const y = Math.min(baselineY, Math.max(topY, baselineY - normH));
+        return { x, y, day: d.day, amount: d.amount };
+      });
+
+      const pD = buildMonotoneCubicPath(points);
+      const aD = `${pD} L ${points[points.length - 1].x.toFixed(1)} ${baselineY} L ${points[0].x.toFixed(1)} ${baselineY} Z`;
+
+      const lastPoint = points[points.length - 1];
+      const marker = lastPoint
+        ? {
+            x: lastPoint.x,
+            y: lastPoint.y,
+            amount: cumData.total,
+            label: `₹${cumData.total.toLocaleString('en-IN')}`,
+          }
+        : null;
+
+      return { pathD: pD, areaD: aD, markerInfo: marker, isSparseBars: false };
+    }
+  }, [
+    activeMax,
+    plottedDays,
+    mode,
+    spendingDays,
+    cumData,
+    peakDay,
+    yMax,
+    plotHeight,
+    baselineY,
+    topY,
+    getX,
+  ]);
+
+  // X-axis intervals
+  const xAxisTicks = useMemo(() => {
+    const raw = [1, 8, 15, 22, daysInMonth];
+    return Array.from(new Set(raw)).sort((a, b) => a - b);
+  }, [daysInMonth]);
+
+  // Animated area draw style
+  const animatedDrawStyle = useAnimatedStyle(() => {
+    if (reduceMotion) {
+      return { width: '100%' };
+    }
+    const pct = Math.min(1, Math.max(0, drawProgress.value));
+    return {
+      width: `${pct * 100}%`,
+    };
+  });
 
   return (
     <View style={styles.dailyChartWrapper}>
-      <Svg width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
-        <Defs>
-          <SvgLinearGradient id="pinkGradientArea" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0%" stopColor={theme.colors.primaryDark} stopOpacity="0.25" />
-            <Stop offset="100%" stopColor={theme.colors.primaryDark} stopOpacity="0.0" />
-          </SvgLinearGradient>
-        </Defs>
+      {/* Card Header with Segmented Control */}
+      <View style={styles.cardHeaderRow}>
+        <View style={{ flex: 1, marginRight: 8 }}>
+          <Text style={styles.cardTitle}>
+            {mode === 'daily' ? 'Daily spending' : 'Cumulative spending'}
+          </Text>
+          <Text style={styles.cardSubtitle} numberOfLines={1}>
+            {mode === 'daily'
+              ? peakDay
+                ? `Peak on ${peakDay.dateStr} • ${peakDay.note || 'Highest Outflow'}`
+                : 'Daily Cash Outflow'
+              : `₹${cumData.total.toLocaleString('en-IN')} total MTD`}
+          </Text>
+        </View>
 
-        {/* Gradient Area Fill */}
-        {areaD ? <Path d={areaD} fill="url(#pinkGradientArea)" /> : null}
+        {/* Small Segmented Control "Daily | Cumulative" */}
+        <View style={styles.segmentContainer}>
+          <TouchableOpacity
+            style={[styles.segmentBtn, mode === 'daily' && styles.segmentBtnActive]}
+            onPress={() => {
+              Haptics.selectionAsync();
+              setMode('daily');
+            }}
+            activeOpacity={0.7}
+            accessibilityLabel="Daily view"
+          >
+            <Text style={[styles.segmentText, mode === 'daily' && styles.segmentTextActive]}>
+              Daily
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.segmentBtn, mode === 'cumulative' && styles.segmentBtnActive]}
+            onPress={() => {
+              Haptics.selectionAsync();
+              setMode('cumulative');
+            }}
+            activeOpacity={0.7}
+            accessibilityLabel="Cumulative view"
+          >
+            <Text style={[styles.segmentText, mode === 'cumulative' && styles.segmentTextActive]}>
+              Cumulative
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
 
-        {/* Top Smooth Line */}
-        {pathD ? (
-          <Path
-            d={pathD}
-            fill="none"
-            stroke={theme.colors.primaryDark}
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          />
-        ) : null}
+      {/* SVG Container: Gridlines + Baseline (Always visible) */}
+      <View style={styles.dailySvgContainer}>
+        <Svg width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+          <Defs>
+            <SvgLinearGradient id="pinkGradientArea" x1="0" y1="0" x2="0" y2="1">
+              <Stop offset="0%" stopColor={theme.colors.primaryDark} stopOpacity="0.25" />
+              <Stop offset="100%" stopColor={theme.colors.primaryDark} stopOpacity="0.0" />
+            </SvgLinearGradient>
+          </Defs>
 
-        {/* Peak Day Marker Pin */}
-        {peakCoords && (
-          <G transform={`translate(${peakCoords.x}, ${peakCoords.y})`}>
-            {/* Outer Ring */}
-            <Circle cx="0" cy="0" r="5.5" fill="#FFFFFF" stroke={theme.colors.primaryDark} strokeWidth="2.5" />
-            <Circle cx="0" cy="0" r="2.5" fill={theme.colors.primaryDark} />
-
-            {/* Floating Tag */}
-            <G transform="translate(0, -22)">
-              <Rect
-                x="-30"
-                y="-10"
-                width="60"
-                height="18"
-                rx="9"
-                fill={theme.colors.onSurface}
+          {/* Gridlines and Nice Ticks */}
+          {activeMax > 0 ? (
+            <>
+              {/* Top Gridline */}
+              <Line
+                x1={leftX}
+                y1={topY}
+                x2={rightX}
+                y2={topY}
+                stroke="#E5E5EA"
+                strokeDasharray="3, 3"
+                strokeWidth="1"
               />
               <SvgText
-                x="0"
-                y="3"
-                fill="#FFFFFF"
+                x={leftX - 6}
+                y={topY + 3}
+                fill="#8E8E93"
                 fontSize="9"
-                fontWeight="700"
+                fontWeight="500"
                 fontFamily="Inter"
-                textAnchor="middle"
+                textAnchor="end"
               >
-                ₹{peakDay?.amount.toLocaleString('en-IN')}
+                {niceScale.formattedTicks[2]}
               </SvgText>
-            </G>
-          </G>
+
+              {/* Mid Gridline */}
+              <Line
+                x1={leftX}
+                y1={midY}
+                x2={rightX}
+                y2={midY}
+                stroke="#E5E5EA"
+                strokeDasharray="3, 3"
+                strokeWidth="1"
+              />
+              <SvgText
+                x={leftX - 6}
+                y={midY + 3}
+                fill="#8E8E93"
+                fontSize="9"
+                fontWeight="500"
+                fontFamily="Inter"
+                textAnchor="end"
+              >
+                {niceScale.formattedTicks[1]}
+              </SvgText>
+            </>
+          ) : null}
+
+          {/* Baseline Gridline */}
+          <Line
+            x1={leftX}
+            y1={baselineY}
+            x2={rightX}
+            y2={baselineY}
+            stroke="#E5E5EA"
+            strokeWidth="1"
+          />
+          <SvgText
+            x={leftX - 6}
+            y={baselineY + 3}
+            fill="#8E8E93"
+            fontSize="9"
+            fontWeight="500"
+            fontFamily="Inter"
+            textAnchor="end"
+          >
+            {niceScale.formattedTicks[0] || '₹0'}
+          </SvgText>
+
+          {/* Empty Month / Zero Spending Label */}
+          {activeMax === 0 && (
+            <SvgText
+              x={(leftX + rightX) / 2}
+              y={midY + 4}
+              fill="#8E8E93"
+              fontSize="12"
+              fontWeight="500"
+              fontFamily="Inter"
+              textAnchor="middle"
+            >
+              No spending yet
+            </SvgText>
+          )}
+        </Svg>
+
+        {/* Animated Drawing Overlay: Curve, Area, Bars, Peak Marker */}
+        {activeMax > 0 && (
+          <Animated.View style={[styles.dailyDrawOverlay, animatedDrawStyle]}>
+            <Svg width={chartWidth} height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+              <Defs>
+                <SvgLinearGradient id="pinkGradientAreaOverlay" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor={theme.colors.primaryDark} stopOpacity="0.25" />
+                  <Stop offset="100%" stopColor={theme.colors.primaryDark} stopOpacity="0.0" />
+                </SvgLinearGradient>
+              </Defs>
+
+              {/* Area & Spline if not sparse bars */}
+              {!isSparseBars && (
+                <>
+                  {areaD ? <Path d={areaD} fill="url(#pinkGradientAreaOverlay)" /> : null}
+                  {pathD ? (
+                    <Path
+                      d={pathD}
+                      fill="none"
+                      stroke={theme.colors.primaryDark}
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    />
+                  ) : null}
+                </>
+              )}
+
+              {/* Sparse Rounded Bars (fewer than 4 spending days) */}
+              {isSparseBars &&
+                spendingDays.map((d) => {
+                  const cx = getX(d.day);
+                  const barW = 16;
+                  const barH = yMax > 0 ? (d.amount / yMax) * plotHeight : 0;
+                  const barY = baselineY - barH;
+                  return (
+                    <Rect
+                      key={`sparse-bar-${d.day}`}
+                      x={cx - barW / 2}
+                      y={barY}
+                      width={barW}
+                      height={barH}
+                      rx={6}
+                      fill={theme.colors.primaryDark}
+                    />
+                  );
+                })}
+
+              {/* Peak Day / Latest Marker Pin & Callout */}
+              {markerInfo && (
+                <G>
+                  {/* Pin Dot */}
+                  <Circle
+                    cx={markerInfo.x}
+                    cy={markerInfo.y}
+                    r="5"
+                    fill="#FFFFFF"
+                    stroke={theme.colors.primaryDark}
+                    strokeWidth="2.5"
+                  />
+                  <Circle cx={markerInfo.x} cy={markerInfo.y} r="2" fill={theme.colors.primaryDark} />
+
+                  {/* Floating Tag */}
+                  {(() => {
+                    const tagW = 64;
+                    const tagH = 18;
+                    const tagX = Math.max(leftX + tagW / 2, Math.min(rightX - tagW / 2, markerInfo.x));
+                    const tagY = Math.max(2, markerInfo.y - 24);
+
+                    return (
+                      <G>
+                        <Rect
+                          x={tagX - tagW / 2}
+                          y={tagY}
+                          width={tagW}
+                          height={tagH}
+                          rx={9}
+                          fill={theme.colors.onSurface}
+                        />
+                        <SvgText
+                          x={tagX}
+                          y={tagY + 12}
+                          fill="#FFFFFF"
+                          fontSize="9"
+                          fontWeight="700"
+                          fontFamily="Inter"
+                          textAnchor="middle"
+                        >
+                          {markerInfo.label}
+                        </SvgText>
+                      </G>
+                    );
+                  })()}
+                </G>
+              )}
+            </Svg>
+          </Animated.View>
         )}
-      </Svg>
+      </View>
 
       {/* X-Axis Date Intervals */}
-      <View style={styles.dailyLabelsRow}>
-        <Text style={styles.dailyLabelText}>Day 1</Text>
-        <Text style={styles.dailyLabelText}>Day 8</Text>
-        <Text style={styles.dailyLabelText}>Day 15</Text>
-        <Text style={[styles.dailyLabelText, styles.peakLabelHighlight]}>
-          {peakDay ? `Peak: Day ${peakDay.day}` : 'Day 22'}
-        </Text>
-        <Text style={styles.dailyLabelText}>Day {days.length}</Text>
+      <View style={[styles.dailyLabelsRow, { paddingLeft: leftX - 4, paddingRight: chartWidth - rightX - 4 }]}>
+        {xAxisTicks.map((tickDay) => {
+          const isFuture = isCurrentMonth && tickDay > today;
+          const isPeak = mode === 'daily' && peakDay && peakDay.day === tickDay;
+          return (
+            <Text
+              key={`xaxis-day-${tickDay}`}
+              style={[
+                styles.dailyLabelText,
+                isFuture && styles.dailyLabelFuture,
+                isPeak && styles.peakLabelHighlight,
+              ]}
+            >
+              {isPeak ? `Peak: Day ${tickDay}` : `Day ${tickDay}`}
+            </Text>
+          );
+        })}
       </View>
     </View>
   );
@@ -532,8 +767,6 @@ const InsightsSection = memo(function InsightsSection({
 }: {
   insights: ReportInsight[];
 }) {
-  if (insights.length === 0) return null;
-
   return (
     <View style={styles.card}>
       <View style={styles.insightsHeader}>
@@ -544,23 +777,37 @@ const InsightsSection = memo(function InsightsSection({
       </View>
 
       <View style={styles.insightsList}>
-        {insights.map((item) => (
-          <View key={item.id} style={styles.insightItem}>
+        {insights.length > 0 ? (
+          insights.map((item) => (
+            <View key={item.id} style={styles.insightItem}>
+              <View style={styles.insightIconWrap}>
+                {item.icon === 'lightbulb' ? (
+                  <LightbulbIcon size={18} color={theme.colors.amber} />
+                ) : item.icon === 'trending_up' ? (
+                  <TrendingUpIcon size={18} color={theme.colors.primaryDark} />
+                ) : (
+                  <CheckCircleIcon size={18} color={theme.colors.emeraldDark} />
+                )}
+              </View>
+              <View style={styles.insightTextCol}>
+                <Text style={styles.insightTitle}>{item.title}</Text>
+                <Text style={styles.insightDesc}>{item.description}</Text>
+              </View>
+            </View>
+          ))
+        ) : (
+          <View style={styles.insightItem}>
             <View style={styles.insightIconWrap}>
-              {item.icon === 'lightbulb' ? (
-                <LightbulbIcon size={18} color={theme.colors.amber} />
-              ) : item.icon === 'trending_up' ? (
-                <TrendingUpIcon size={18} color={theme.colors.primaryDark} />
-              ) : (
-                <CheckCircleIcon size={18} color={theme.colors.emeraldDark} />
-              )}
+              <CheckCircleIcon size={18} color={theme.colors.emeraldDark} />
             </View>
             <View style={styles.insightTextCol}>
-              <Text style={styles.insightTitle}>{item.title}</Text>
-              <Text style={styles.insightDesc}>{item.description}</Text>
+              <Text style={styles.insightTitle}>All clear</Text>
+              <Text style={styles.insightDesc}>
+                Add transactions to generate smart spending insights and month-over-month comparisons.
+              </Text>
             </View>
           </View>
-        ))}
+        )}
       </View>
     </View>
   );
@@ -597,41 +844,120 @@ export default function ReportScreen() {
   // React Query Report hook
   const { metrics, isLoading, isError, refetch } = useReportData(selectedDate);
 
-  // Reanimated values for smooth entrance and cross-fade on month change
-  const contentOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(12);
+  // Accessibility reduce motion state
+  const [reduceMotion, setReduceMotion] = useState(false);
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => {
+      sub.remove();
+    };
+  }, []);
 
-  // Animated Count-Up Shared Values
-  const savingsProgress = useSharedValue(0);
-  const incomeProgress = useSharedValue(0);
-  const expenseProgress = useSharedValue(0);
+  // Shared values for the 7 staggered sections:
+  // 0: Month pill, 1: Hero card, 2: Dual cards, 3: 6-month chart, 4: Category card, 5: Daily chart, 6: Insights
+  const s0 = useSharedValue(0);
+  const s1 = useSharedValue(0);
+  const s2 = useSharedValue(0);
+  const s3 = useSharedValue(0);
+  const s4 = useSharedValue(0);
+  const s5 = useSharedValue(0);
+  const s6 = useSharedValue(0);
 
-  // Entrance and data update animations (UI thread)
+  // Chart growth shared values
+  const barGrowth = useSharedValue(0);
+  const drawProgress = useSharedValue(0);
+
+  // Animated Count-Up Shared Value: driven from ONE shared progress value with Easing.bezier(0.16, 1, 0.3, 1)
+  const countUpProgress = useSharedValue(0);
+
+  // Cross-fade opacity on month switch
+  const crossFadeOpacity = useSharedValue(1);
+
+  // Staggered entrance worklet (70ms stagger, ~450ms each with spring)
+  const runEntrance = useCallback(() => {
+    // Reset section entrance values
+    s0.value = 0;
+    s1.value = 0;
+    s2.value = 0;
+    s3.value = 0;
+    s4.value = 0;
+    s5.value = 0;
+    s6.value = 0;
+
+    // Reset hero count-up progress
+    countUpProgress.value = 0;
+
+    // Reset chart growth values
+    barGrowth.value = 0;
+    drawProgress.value = 0;
+
+    const sections = [s0, s1, s2, s3, s4, s5, s6];
+    sections.forEach((s, idx) => {
+      if (reduceMotion) {
+        s.value = withDelay(
+          idx * 70,
+          withTiming(1, { duration: 450, easing: Easing.out(Easing.ease) })
+        );
+      } else {
+        s.value = withDelay(
+          idx * 70,
+          withSpring(1, { damping: 18, stiffness: 140 })
+        );
+      }
+    });
+
+    // Hero count-up starts with the entrance driven by ONE shared progress value
+    if (reduceMotion) {
+      countUpProgress.value = 1;
+    } else {
+      countUpProgress.value = withDelay(
+        70,
+        withTiming(1, { duration: 1100, easing: Easing.bezier(0.16, 1, 0.3, 1) })
+      );
+    }
+
+    // Chart growth start with entrance (bars and area draw)
+    if (reduceMotion) {
+      barGrowth.value = 1;
+      drawProgress.value = 1;
+    } else {
+      barGrowth.value = withDelay(
+        210,
+        withTiming(1, { duration: 550, easing: Easing.out(Easing.cubic) })
+      );
+      drawProgress.value = withDelay(
+        350,
+        withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) })
+      );
+    }
+  }, [
+    reduceMotion,
+    s0, s1, s2, s3, s4, s5, s6,
+    countUpProgress,
+    barGrowth, drawProgress,
+  ]);
+
+  // Replay entrance on every focus using useFocusEffect
+  useFocusEffect(
+    useCallback(() => {
+      if (!isLoading) {
+        runEntrance();
+      }
+    }, [isLoading, runEntrance])
+  );
+
+  // Trigger entrance when metrics update or finish loading
   useEffect(() => {
     if (!isLoading) {
-      contentOpacity.value = withTiming(1, { duration: 450, easing: Easing.out(Easing.cubic) });
-      contentTranslateY.value = withSpring(0, { damping: 20, stiffness: 180 });
-
-      savingsProgress.value = withTiming(metrics.netSavings, {
-        duration: 650,
-        easing: Easing.out(Easing.cubic),
-      });
-      incomeProgress.value = withTiming(metrics.totalIncome, {
-        duration: 650,
-        easing: Easing.out(Easing.cubic),
-      });
-      expenseProgress.value = withTiming(metrics.totalExpenses, {
-        duration: 650,
-        easing: Easing.out(Easing.cubic),
-      });
+      runEntrance();
     }
-  }, [isLoading, metrics.netSavings, metrics.totalIncome, metrics.totalExpenses]);
+  }, [isLoading, metrics.year, metrics.month, metrics.totalExpenses, metrics.totalIncome]);
 
   const animatedSavingsProps = useAnimatedProps(() => {
     'worklet';
-    const val = Math.round(savingsProgress.value);
-    const sign = val < 0 ? '-' : '';
-    const formatted = `${sign}₹${Math.abs(val).toLocaleString('en-IN')}`;
+    const val = Math.round(metrics.netSavings * countUpProgress.value);
+    const formatted = formatIndianCurrencyWorklet(val, '₹');
     return {
       text: formatted,
       defaultValue: formatted,
@@ -640,8 +966,8 @@ export default function ReportScreen() {
 
   const animatedIncomeProps = useAnimatedProps(() => {
     'worklet';
-    const val = Math.round(incomeProgress.value);
-    const formatted = `+₹${Math.max(0, val).toLocaleString('en-IN')}`;
+    const val = Math.round(metrics.totalIncome * countUpProgress.value);
+    const formatted = formatIndianCurrencyWorklet(val, '+₹');
     return {
       text: formatted,
       defaultValue: formatted,
@@ -650,26 +976,54 @@ export default function ReportScreen() {
 
   const animatedExpenseProps = useAnimatedProps(() => {
     'worklet';
-    const val = Math.round(expenseProgress.value);
-    const formatted = `-₹${Math.max(0, val).toLocaleString('en-IN')}`;
+    const val = Math.round(metrics.totalExpenses * countUpProgress.value);
+    const formatted = formatIndianCurrencyWorklet(val, '-₹');
     return {
       text: formatted,
       defaultValue: formatted,
     } as any;
   });
 
-  const animatedContentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-    transform: [{ translateY: contentTranslateY.value }],
+  // Animated styles for 7 staggered sections
+  const animStyle0 = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, s0.value)),
+    transform: [{ translateY: reduceMotion ? 0 : (1 - Math.min(1, s0.value)) * 16 }],
+  }));
+  const animStyle1 = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, s1.value)),
+    transform: [{ translateY: reduceMotion ? 0 : (1 - Math.min(1, s1.value)) * 16 }],
+  }));
+  const animStyle2 = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, s2.value)),
+    transform: [{ translateY: reduceMotion ? 0 : (1 - Math.min(1, s2.value)) * 16 }],
+  }));
+  const animStyle3 = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, s3.value)),
+    transform: [{ translateY: reduceMotion ? 0 : (1 - Math.min(1, s3.value)) * 16 }],
+  }));
+  const animStyle4 = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, s4.value)),
+    transform: [{ translateY: reduceMotion ? 0 : (1 - Math.min(1, s4.value)) * 16 }],
+  }));
+  const animStyle5 = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, s5.value)),
+    transform: [{ translateY: reduceMotion ? 0 : (1 - Math.min(1, s5.value)) * 16 }],
+  }));
+  const animStyle6 = useAnimatedStyle(() => ({
+    opacity: Math.min(1, Math.max(0, s6.value)),
+    transform: [{ translateY: reduceMotion ? 0 : (1 - Math.min(1, s6.value)) * 16 }],
+  }));
+
+  const animatedCrossFadeStyle = useAnimatedStyle(() => ({
+    opacity: crossFadeOpacity.value,
   }));
 
   // Trigger smooth cross-fade animation when switching months
   const triggerMonthTransition = useCallback(() => {
-    contentOpacity.value = 0.3;
-    contentTranslateY.value = 8;
-    contentOpacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.ease) });
-    contentTranslateY.value = withSpring(0, { damping: 20, stiffness: 200 });
-  }, []);
+    crossFadeOpacity.value = 0.35;
+    crossFadeOpacity.value = withTiming(1, { duration: 300, easing: Easing.out(Easing.ease) });
+    runEntrance();
+  }, [crossFadeOpacity, runEntrance]);
 
   // Previous Month Handler
   const goToPrevMonth = useCallback(() => {
@@ -732,39 +1086,41 @@ export default function ReportScreen() {
         </View>
       </View>
 
-      {/* Month Selector Pill */}
-      <View style={styles.monthSelectorPill}>
-        <TouchableOpacity
-          style={styles.chevronBtn}
-          onPress={goToPrevMonth}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityLabel="Previous month"
-        >
-          <ChevronLeftIcon size={18} color={theme.colors.secondary} />
-        </TouchableOpacity>
+      {/* 0. Month Selector Pill (Section 0) */}
+      <Animated.View style={animStyle0}>
+        <View style={styles.monthSelectorPill}>
+          <TouchableOpacity
+            style={styles.chevronBtn}
+            onPress={goToPrevMonth}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel="Previous month"
+          >
+            <ChevronLeftIcon size={18} color={theme.colors.secondary} />
+          </TouchableOpacity>
 
-        <View style={styles.monthCenterRow}>
-          <CalendarIcon size={16} color={theme.colors.primaryDark} />
-          <Text style={styles.monthLabelText}>{metrics.label}</Text>
+          <View style={styles.monthCenterRow}>
+            <CalendarIcon size={16} color={theme.colors.primaryDark} />
+            <Text style={styles.monthLabelText}>{metrics.label}</Text>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.chevronBtn, isCurrentRealMonth && styles.chevronDisabled]}
+            onPress={goToNextMonth}
+            disabled={isCurrentRealMonth}
+            activeOpacity={0.7}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessibilityLabel="Next month"
+          >
+            <ChevronRightIcon
+              size={18}
+              color={isCurrentRealMonth ? theme.colors.outlineVariant : theme.colors.secondary}
+            />
+          </TouchableOpacity>
         </View>
+      </Animated.View>
 
-        <TouchableOpacity
-          style={[styles.chevronBtn, isCurrentRealMonth && styles.chevronDisabled]}
-          onPress={goToNextMonth}
-          disabled={isCurrentRealMonth}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          accessibilityLabel="Next month"
-        >
-          <ChevronRightIcon
-            size={18}
-            color={isCurrentRealMonth ? theme.colors.outlineVariant : theme.colors.secondary}
-          />
-        </TouchableOpacity>
-      </View>
-
-      {/* Vertical Scroll Area without pan conflict */}
+      {/* Vertical Scroll Area without pan conflict (Android system back works normally) */}
       <ScrollView
         style={styles.scrollArea}
         contentContainerStyle={[
@@ -773,21 +1129,22 @@ export default function ReportScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-          {isLoading ? (
-            <ReportSkeleton />
-          ) : isError ? (
-            <View style={styles.errorCard}>
-              <Text style={styles.errorTitle}>Could not load report</Text>
-              <Text style={styles.errorSubtitle}>
-                Please check your network connection and try again.
-              </Text>
-              <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()} activeOpacity={0.8}>
-                <Text style={styles.retryBtnText}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <Animated.View style={[styles.mainContent, animatedContentStyle]}>
-              {/* 1. Hero Net Savings Card */}
+        {isLoading ? (
+          <ReportSkeleton />
+        ) : isError ? (
+          <View style={styles.errorCard}>
+            <Text style={styles.errorTitle}>Could not load report</Text>
+            <Text style={styles.errorSubtitle}>
+              Please check your network connection and try again.
+            </Text>
+            <TouchableOpacity style={styles.retryBtn} onPress={() => refetch()} activeOpacity={0.8}>
+              <Text style={styles.retryBtnText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <Animated.View style={[styles.mainContent, animatedCrossFadeStyle]}>
+            {/* 1. Hero Net Savings Card (Section 1) */}
+            <Animated.View style={animStyle1}>
               <View style={styles.heroCard}>
                 <View style={styles.heroAmbientAura} />
 
@@ -865,8 +1222,10 @@ export default function ReportScreen() {
                   </View>
                 </View>
               </View>
+            </Animated.View>
 
-              {/* 2. Income & Expense Dual Cards */}
+            {/* 2. Income & Expense Dual Cards (Section 2) */}
+            <Animated.View style={animStyle2}>
               <View style={styles.dualGrid}>
                 {/* Income Card */}
                 <View style={styles.halfCard}>
@@ -927,116 +1286,101 @@ export default function ReportScreen() {
                   </View>
                 </View>
               </View>
-
-              {/* If month has zero transactions, show friendly empty card */}
-              {!metrics.hasData ? (
-                <View style={styles.emptyMonthCard}>
-                  <View style={styles.emptyIconCircle}>
-                    <CalendarIcon size={32} color={theme.colors.primaryDark} />
-                  </View>
-                  <Text style={styles.emptyTitle}>No transactions in {metrics.label}</Text>
-                  <Text style={styles.emptySubtitle}>
-                    Record expenses or income to unlock monthly analytics, category breakdowns, and trend charts.
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.emptyAddBtn}
-                    onPress={() => router.push('/add' as any)}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.emptyAddBtnText}>+ Add Transaction</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <>
-                  {/* 3. Last 6 Months Grouped Bar Chart */}
-                  <View style={styles.card}>
-                    <View style={styles.cardHeaderRow}>
-                      <View>
-                        <Text style={styles.cardTitle}>Last 6 Months</Text>
-                        <Text style={styles.cardSubtitle}>Income vs Outflow trends</Text>
-                      </View>
-                      <View style={styles.legendRow}>
-                        <View style={styles.legendItem}>
-                          <View style={styles.legendDotGreen} />
-                          <Text style={styles.legendText}>In</Text>
-                        </View>
-                        <View style={styles.legendItem}>
-                          <View style={styles.legendDotPink} />
-                          <Text style={styles.legendText}>Out</Text>
-                        </View>
-                      </View>
-                    </View>
-
-                    <SixMonthBarChart
-                      data={metrics.sixMonthTrend}
-                      onSelectMonth={handleSelectBarMonth}
-                    />
-                  </View>
-
-                  {/* 4. Category Breakdown & Donut Chart */}
-                  {metrics.categoryBreakdown.length > 0 && (
-                    <View style={styles.card}>
-                      <View style={styles.cardHeaderRow}>
-                        <View>
-                          <Text style={styles.cardTitle}>Where your money went</Text>
-                          <Text style={styles.cardSubtitle}>
-                            {metrics.categoryBreakdown.length}{' '}
-                            {metrics.categoryBreakdown.length === 1 ? 'category' : 'categories'}
-                          </Text>
-                        </View>
-                        <Text style={styles.cardHeaderAmount}>
-                          ₹{metrics.totalExpenses.toLocaleString('en-IN')}
-                        </Text>
-                      </View>
-
-                      {/* Donut Graphic */}
-                      <CategoryDonutChart
-                        categories={metrics.categoryBreakdown}
-                        totalExpenses={metrics.totalExpenses}
-                      />
-
-                      {/* Sorted Category Inset List */}
-                      <View style={styles.categoryList}>
-                        {metrics.categoryBreakdown.map((item) => (
-                          <CategoryReportRow key={item.categoryId} item={item} />
-                        ))}
-                      </View>
-                    </View>
-                  )}
-
-                  {/* 5. Daily Spending Area Curve */}
-                  {metrics.totalExpenses > 0 && (
-                    <View style={styles.card}>
-                      <View style={styles.cardHeaderRow}>
-                        <View>
-                          <Text style={styles.cardTitle}>Daily spending</Text>
-                          <Text style={styles.cardSubtitle}>
-                            {metrics.peakDay
-                              ? `Peak on ${metrics.peakDay.dateStr} • ${metrics.peakDay.note || 'Highest Outflow'}`
-                              : 'Daily Cash Outflow'}
-                          </Text>
-                        </View>
-                        <View style={styles.daysCountBadge}>
-                          <Text style={styles.daysCountText}>
-                            {metrics.dailySpending.length} Days
-                          </Text>
-                        </View>
-                      </View>
-
-                      <DailySpendingChart
-                        days={metrics.dailySpending}
-                        peakDay={metrics.peakDay}
-                      />
-                    </View>
-                  )}
-
-                  {/* 6. Smart Insights Section */}
-                  <InsightsSection insights={metrics.insights} />
-                </>
-              )}
             </Animated.View>
-          )}
-        </ScrollView>
+
+            {/* 3. Last 6 Months Grouped Bar Chart (Section 3 - Kept Mounted) */}
+            <Animated.View style={animStyle3}>
+              <View style={styles.card}>
+                <View style={styles.cardHeaderRow}>
+                  <View>
+                    <Text style={styles.cardTitle}>Last 6 Months</Text>
+                    <Text style={styles.cardSubtitle}>Income vs Outflow trends</Text>
+                  </View>
+                  <View style={styles.legendRow}>
+                    <View style={styles.legendItem}>
+                      <View style={styles.legendDotGreen} />
+                      <Text style={styles.legendText}>In</Text>
+                    </View>
+                    <View style={styles.legendItem}>
+                      <View style={styles.legendDotPink} />
+                      <Text style={styles.legendText}>Out</Text>
+                    </View>
+                  </View>
+                </View>
+
+                <SixMonthBarChart
+                  data={metrics.sixMonthTrend}
+                  onSelectMonth={handleSelectBarMonth}
+                  growth={barGrowth}
+                />
+              </View>
+            </Animated.View>
+
+            {/* 4. Category Breakdown & Donut Chart (Section 4 - Kept Mounted) */}
+            <Animated.View style={animStyle4}>
+              <View style={styles.card}>
+                <View style={styles.cardHeaderRow}>
+                  <View>
+                    <Text style={styles.cardTitle}>Where your money went</Text>
+                    <Text style={styles.cardSubtitle}>
+                      {metrics.categoryBreakdown.length}{' '}
+                      {metrics.categoryBreakdown.length === 1 ? 'category' : 'categories'}
+                    </Text>
+                  </View>
+                  <Text style={styles.cardHeaderAmount}>
+                    ₹{metrics.totalExpenses.toLocaleString('en-IN')}
+                  </Text>
+                </View>
+
+                {/* Donut Graphic */}
+                <DonutChart
+                  data={metrics.categoryBreakdown}
+                  totalAmount={metrics.totalExpenses}
+                  size={160}
+                  strokeWidth={18}
+                  showLegend={false}
+                  centerSubtitle="Largest"
+                  centerTitle={metrics.categoryBreakdown[0]?.name || 'None'}
+                  centerTitleValue={
+                    metrics.categoryBreakdown[0]
+                      ? `${metrics.categoryBreakdown[0].percentage}%`
+                      : '0%'
+                  }
+                />
+
+                {/* Sorted Category Inset List or Empty Note */}
+                {metrics.categoryBreakdown.length > 0 ? (
+                  <View style={styles.categoryList}>
+                    {metrics.categoryBreakdown.map((item) => (
+                      <CategoryReportRow key={item.categoryId} item={item} />
+                    ))}
+                  </View>
+                ) : (
+                  <Text style={styles.emptyCardHint}>No expense categories recorded this month.</Text>
+                )}
+              </View>
+            </Animated.View>
+
+            {/* 5. Daily Spending Area Curve (Section 5 - Kept Mounted) */}
+            <Animated.View style={animStyle5}>
+              <View style={styles.card}>
+                <DailySpendingChart
+                  days={metrics.dailySpending}
+                  peakDay={metrics.peakDay}
+                  selectedDate={selectedDate}
+                  drawProgress={drawProgress}
+                  reduceMotion={reduceMotion}
+                />
+              </View>
+            </Animated.View>
+
+            {/* 6. Smart Insights Section (Section 6 - Kept Mounted) */}
+            <Animated.View style={animStyle6}>
+              <InsightsSection insights={metrics.insights} />
+            </Animated.View>
+          </Animated.View>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -1444,32 +1788,68 @@ const styles = StyleSheet.create({
 
   // Daily Spending Chart
   dailyChartWrapper: {
-    paddingTop: 10,
+    paddingTop: 4,
+  },
+  dailySvgContainer: {
+    position: 'relative',
+    width: '100%',
+    height: 136,
+  },
+  dailyDrawOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    height: 136,
+    overflow: 'hidden',
   },
   dailyLabelsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingTop: 6,
-    paddingHorizontal: 2,
   },
   dailyLabelText: {
     fontSize: 11,
     color: theme.colors.secondary,
+    fontFamily: 'Inter',
+  },
+  dailyLabelFuture: {
+    color: theme.colors.outlineVariant,
   },
   peakLabelHighlight: {
     color: theme.colors.primaryDark,
     fontWeight: '700',
   },
-  daysCountBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: theme.radii.pill,
-    backgroundColor: theme.colors.primaryFixed,
+  emptyCardHint: {
+    fontSize: 13,
+    color: theme.colors.secondary,
+    textAlign: 'center',
+    paddingVertical: 14,
   },
-  daysCountText: {
+  segmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: theme.colors.surfaceContainerLow,
+    borderRadius: 8,
+    padding: 2,
+    alignItems: 'center',
+  },
+  segmentBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  segmentBtnActive: {
+    backgroundColor: theme.colors.surfaceContainerLowest,
+    ...theme.shadows.card,
+  },
+  segmentText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '500',
+    color: theme.colors.secondary,
+    fontFamily: 'Inter',
+  },
+  segmentTextActive: {
     color: theme.colors.primaryDark,
+    fontWeight: '700',
   },
 
   // Insights Section
