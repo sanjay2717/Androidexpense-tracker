@@ -3,6 +3,15 @@ import { StatusBar } from 'expo-status-bar';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
+
+// Reanimated 3.16+ strict-mode logger configuration:
+// Per Reanimated official documentation, strict: false disables development-mode warnings
+// for render-phase mutable access from external libraries (like @shopify/react-native-skia reconciler)
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false,
+});
 import {
   useFonts,
   Inter_400Regular,
@@ -90,40 +99,42 @@ function RootLayoutContent() {
         }}
       >
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="upgrade-sync"
-          options={{
-            headerShown: false,
-            gestureEnabled: false,
-            animation: 'slide_from_right',
-          }}
-        />
-        <Stack.Screen
-          name="add"
-          options={{
-            presentation: 'modal',
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen
-          name="settings"
-          options={{
-            presentation: 'modal',
-            headerShown: true,
-            title: 'Settings',
-            headerStyle: { backgroundColor: theme.colors.surfaceContainerLowest },
-            headerTintColor: theme.colors.onSurface,
-            headerTitleStyle: { fontWeight: '700' },
-          }}
-        />
-        <Stack.Screen
-          name="profile"
-          options={{
-            headerShown: false,
-            animation: 'slide_from_right',
-          }}
-        />
+        <Stack.Protected guard={hasSession}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="upgrade-sync"
+            options={{
+              headerShown: false,
+              gestureEnabled: false,
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="add"
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen
+            name="settings"
+            options={{
+              presentation: 'modal',
+              headerShown: true,
+              title: 'Settings',
+              headerStyle: { backgroundColor: theme.colors.surfaceContainerLowest },
+              headerTintColor: theme.colors.onSurface,
+              headerTitleStyle: { fontWeight: '700' },
+            }}
+          />
+          <Stack.Screen
+            name="profile"
+            options={{
+              headerShown: false,
+              animation: 'slide_from_right',
+            }}
+          />
+        </Stack.Protected>
       </Stack>
 
       {/* Branded loading screen remains until fonts and auth session restore complete */}

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase, isSupabaseConfigured } from './supabase';
+import { useAuth } from './auth';
 import { Transaction, WalletBalance, Category, Goal } from '../types/database';
 
 
@@ -37,12 +38,19 @@ export async function fetchWalletBalances(): Promise<WalletBalance[]> {
     return [];
   }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('wallet_balances')
     .select('*');
 
   if (error) {
-    console.warn('Notice fetching wallet_balances:', error.message);
+    if (!error.message?.includes('permission denied')) {
+      console.warn('Notice fetching wallet_balances:', error.message);
+    }
     return [];
   }
   return data ?? [];
@@ -55,12 +63,20 @@ export async function fetchCategories(): Promise<Category[]> {
   if (!isSupabaseConfigured) {
     return [];
   }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('categories')
     .select('id, name, color, icon, type, budget_limit');
 
   if (error) {
-    console.warn('Error fetching categories from Supabase:', error.message);
+    if (!error.message?.includes('permission denied')) {
+      console.warn('Error fetching categories from Supabase:', error.message);
+    }
     return [];
   }
   return data || [];
@@ -71,6 +87,11 @@ export async function fetchCategories(): Promise<Category[]> {
  */
 export async function fetchTransactions(): Promise<Transaction[]> {
   if (!isSupabaseConfigured) {
+    return [];
+  }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
     return [];
   }
 
@@ -95,7 +116,9 @@ export async function fetchTransactions(): Promise<Transaction[]> {
       .limit(100);
 
     if (error) {
-      console.warn('Error fetching transactions from Supabase:', error.message);
+      if (!error.message?.includes('permission denied')) {
+        console.warn('Error fetching transactions from Supabase:', error.message);
+      }
       return [];
     }
 
@@ -137,9 +160,13 @@ export async function fetchTransactions(): Promise<Transaction[]> {
  * Hook to fetch wallet balances with automatic caching
  */
 export function useWalletBalances() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery<WalletBalance[]>({
-    queryKey: ['wallet_balances'],
+    queryKey: ['wallet_balances', userId],
     queryFn: fetchWalletBalances,
+    enabled: !!userId,
     staleTime: 1000 * 30,
   });
 }
@@ -148,9 +175,13 @@ export function useWalletBalances() {
  * Hook to fetch transactions with automatic caching
  */
 export function useTransactions(limit?: number) {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery<Transaction[]>({
-    queryKey: ['transactions', limit],
+    queryKey: ['transactions', userId, limit],
     queryFn: fetchTransactions,
+    enabled: !!userId,
     staleTime: 1000 * 30,
   });
 }
@@ -159,17 +190,27 @@ export function useTransactions(limit?: number) {
  * Custom hook to get all home screen financial data and calculations
  */
 export function useHomeDashboardData() {
-  const balancesQuery = useWalletBalances();
+  const { user } = useAuth();
+  const userId = user?.id;
+
+  const balancesQuery = useQuery<WalletBalance[]>({
+    queryKey: ['wallet_balances', userId],
+    queryFn: fetchWalletBalances,
+    enabled: !!userId,
+    staleTime: 1000 * 30,
+  });
 
   const categoriesQuery = useQuery({
-    queryKey: ['categories'],
+    queryKey: ['categories', userId],
     queryFn: fetchCategories,
+    enabled: !!userId,
     staleTime: 1000 * 60,
   });
 
   const transactionsQuery = useQuery({
-    queryKey: ['transactions'],
+    queryKey: ['transactions', userId],
     queryFn: fetchTransactions,
+    enabled: !!userId,
     staleTime: 1000 * 30,
   });
 
@@ -404,6 +445,7 @@ export function useAddTransaction() {
       if (!error) {
         queryClient.invalidateQueries({ queryKey: ['transactions'] });
         queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+        queryClient.invalidateQueries({ queryKey: ['report'] });
       }
     },
   });
@@ -519,6 +561,7 @@ export function useDeleteWallet() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
     },
   });
 }
@@ -527,9 +570,13 @@ export function useDeleteWallet() {
  * Query hook to fetch categories
  */
 export function useCategories() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery<Category[]>({
-    queryKey: ['categories'],
+    queryKey: ['categories', userId],
     queryFn: fetchCategories,
+    enabled: !!userId,
     staleTime: 1000 * 60,
   });
 }
@@ -577,13 +624,20 @@ export async function fetchGoals(): Promise<Goal[]> {
     return [];
   }
 
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('goals')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (error) {
-    console.warn('Notice fetching goals:', error.message);
+    if (!error.message?.includes('permission denied')) {
+      console.warn('Notice fetching goals:', error.message);
+    }
     return [];
   }
   return data ?? [];
@@ -593,9 +647,13 @@ export async function fetchGoals(): Promise<Goal[]> {
  * Query hook to fetch goals
  */
 export function useGoals() {
+  const { user } = useAuth();
+  const userId = user?.id;
+
   return useQuery<Goal[]>({
-    queryKey: ['goals'],
+    queryKey: ['goals', userId],
     queryFn: fetchGoals,
+    enabled: !!userId,
     staleTime: 1000 * 30,
   });
 }

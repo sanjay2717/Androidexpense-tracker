@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { Session, User, AuthResponse, UserResponse } from '@supabase/supabase-js';
+import { router } from 'expo-router';
 import { supabase, isSupabaseConfigured } from './supabase';
 import { queryClient } from './queryClient';
 
@@ -157,8 +158,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session, user, isAnonymous]);
 
   const signOut = useCallback(async (): Promise<{ error: Error | null }> => {
+    try {
+      await queryClient.cancelQueries();
+    } catch {}
+    router.replace('/(auth)/sign-in');
     setIsGuestActive(false);
-    queryClient.clear();
     const result = await supabase.auth.signOut();
     queryClient.clear();
     return result;
