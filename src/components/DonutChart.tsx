@@ -1,55 +1,8 @@
-import React, { useEffect, useMemo, memo, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, AppState } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  useAnimatedProps,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
-import { useIsFocused } from 'expo-router';
+import React, { useMemo, memo } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import Svg, { G, Circle } from 'react-native-svg';
 import { theme } from '../theme';
 import { formatIndianCurrencyWorklet } from '../lib/reportData';
-
-// Immutable Skia bundle resolved once at startup. Zero module-level mutable state.
-interface SkiaBundle {
-  Skia: any;
-  Canvas: any;
-  Path: any;
-}
-
-const SKIA: SkiaBundle | null = (() => {
-  try {
-    const skiaModule = require('@shopify/react-native-skia');
-    if (
-      skiaModule &&
-      skiaModule.Skia &&
-      skiaModule.Canvas &&
-      skiaModule.Path &&
-      typeof skiaModule.Skia.Path?.Circle === 'function' &&
-      typeof skiaModule.Skia.PathBuilder?.Make === 'function'
-    ) {
-      return {
-        Skia: skiaModule.Skia,
-        Canvas: skiaModule.Canvas,
-        Path: skiaModule.Path,
-      };
-    }
-  } catch {
-    // Skia not available, fall back to SVG
-  }
-  return null;
-})();
-
-const IS_SKIA_AVAILABLE = SKIA !== null;
-const CanvasComponent = SKIA ? SKIA.Canvas : null;
-const PathComponent = SKIA ? SKIA.Path : null;
-
-const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
-
-const SWEEP_EASING = Easing.bezier(0.16, 1, 0.3, 1);
-const SWEEP_DURATION = 1100;
 
 export interface DonutChartItem {
   categoryId?: string;
@@ -80,320 +33,143 @@ export const DonutChart = memo(function DonutChart({
   centerTitle,
   centerTitleValue,
 }: DonutChartProps) {
-  const isFocused = useIsFocused();
-
-  // Surface rebuild counter: remounts Canvas on focus/resume to restore lost Android hardware surfaces
-  const [surfaceKey, setSurfaceKey] = useState(0);
-
-  // Deterministic data signature to detect changes and restart sweep reliably
-  const dataSignature = useMemo(() => {
-    const list = data
-      .map((d) => `${d.categoryId || d.name}:${Number(d.amount) || 0}:${d.color || ''}`)
-      .join('|');
-    return `${Number(totalAmount) || 0}_${list}`;
-  }, [data, totalAmount]);
-
-  // Per-instance Reanimated shared values
-  const scale = useSharedValue(0.92);
-  const containerOpacity = useSharedValue(0);
-  const sweepProgress = useSharedValue(0);
-  const centerLabelOpacity = useSharedValue(1);
-
-  // Safe data filtering and NaN / zero guards
-  const safeTotal = useMemo(() => {
-    return Number.isFinite(totalAmount) && totalAmount > 0 ? totalAmount : 0;
-  }, [totalAmount]);
-
-  // Consolidate items beyond top 5 into an "Others" slice so slices and legend always total 100%
-  const processedCategories = useMemo(() => {
-    if (safeTotal <= 0 || !Array.isArray(data)) return [];
-    const valid = data
-      .filter((d) => Number.isFinite(d.amount) && d.amount > 0)
-      .sort((a, b) => b.amount - a.amount);
-
-    if (valid.length <= 5) {
-      return valid;
-    }
-
-    const top5 = valid.slice(0, 5);
-    const remainder = valid.slice(5);
-    const othersAmount = remainder.reduce((acc, item) => acc + item.amount, 0);
-
-    if (othersAmount > 0) {
-      top5.push({
-        categoryId: 'others-merged',
-        name: 'Others',
-        amount: othersAmount,
-        color: theme.colors.outlineVariant,
-      });
-    }
-
-    return top5;
-  }, [data, safeTotal]);
-
-  const hasData = safeTotal > 0 && processedCategories.length > 0;
-
-  // Animation controller
-  const runSweepAnimation = useCallback(() => {
-    sweepProgress.value = 0;
-    centerLabelOpacity.value = 0.35;
-
-    scale.value = withTiming(1, {
-      duration: 500,
-      easing: Easing.out(Easing.back(1.15)),
-    });
-    containerOpacity.value = withTiming(1, { duration: 350 });
-    centerLabelOpacity.value = withTiming(1, { duration: 450 });
-
-    sweepProgress.value = withTiming(1, {
-      duration: SWEEP_DURATION,
-      easing: SWEEP_EASING,
-    });
-  }, [scale, containerOpacity, centerLabelOpacity, sweepProgress]);
-
-  // Restart sweep when data signature changes
-  useEffect(() => {
-    runSweepAnimation();
-  }, [dataSignature, runSweepAnimation]);
-
-  // When screen regains focus, increment surfaceKey to remount Canvas (restoring Android surface) & replay sweep
-  const prevFocusedRef = useRef(isFocused);
-  useEffect(() => {
-    if (isFocused && !prevFocusedRef.current) {
-      setSurfaceKey((k) => k + 1);
-      runSweepAnimation();
-    }
-    prevFocusedRef.current = isFocused;
-  }, [isFocused, runSweepAnimation]);
-
-  // AppState active listener: rebuild lost surface if app resumes from background
-  useEffect(() => {
-    const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active' && isFocused) {
-        setSurfaceKey((k) => k + 1);
-        runSweepAnimation();
-      }
-    });
-    return () => sub.remove();
-  }, [isFocused, runSweepAnimation]);
-
-  // Safeguard: if chart is focused, total > 0, and progress is 0 with no animation running, animate to 1
-  useEffect(() => {
-    if (isFocused && hasData && sweepProgress.value === 0) {
-      sweepProgress.value = withTiming(1, {
-        duration: SWEEP_DURATION,
-        easing: SWEEP_EASING,
-      });
-    }
-  }, [isFocused, hasData, sweepProgress]);
-
-  const animatedContainerStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: containerOpacity.value,
-  }));
-
-  const animatedLabelStyle = useAnimatedStyle(() => ({
-    opacity: centerLabelOpacity.value,
-  }));
-
-  // Worklet-driven count-up for the center total number (Zero per-frame JS)
-  const animatedCenterTotalProps = useAnimatedProps(() => {
-    'worklet';
-    const current = Math.round(sweepProgress.value * safeTotal);
-    const formatted = formatIndianCurrencyWorklet(current, '₹');
-    return {
-      text: formatted,
-      defaultValue: formatted,
-    } as any;
-  });
-
   const center = size / 2;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
 
-  // Geometry computation for Skia (immutable API) and SVG
-  const { isSingleCategory, singleColor, segmentSlices, skiaPaths, skiaBgPath } = useMemo(() => {
-    // Immutable background circle using Skia.Path.Circle
-    const bgPath = IS_SKIA_AVAILABLE && SKIA
-      ? SKIA.Skia.Path.Circle(center, center, radius)
-      : null;
+  // Pure geometry memoized on (data, totalAmount, size, strokeWidth)
+  const { hasData, safeTotal, isSingleCategory, singleColor, segmentSlices, processedCategories, formattedTotal } =
+    useMemo(() => {
+      const validTotal = Number.isFinite(totalAmount) && totalAmount > 0 ? totalAmount : 0;
 
-    if (!hasData) {
-      return {
-        isSingleCategory: false,
-        singleColor: theme.colors.primary,
-        segmentSlices: [],
-        skiaPaths: [],
-        skiaBgPath: bgPath,
-      };
-    }
+      const validCategories = (Array.isArray(data) ? data : [])
+        .filter((d) => d && Number.isFinite(d.amount) && d.amount > 0)
+        .sort((a, b) => b.amount - a.amount);
 
-    // Exactly ONE category -> full circle, never an arc!
-    if (processedCategories.length === 1) {
-      const color = processedCategories[0].color || theme.colors.primary;
-      const skiaSinglePath = IS_SKIA_AVAILABLE && SKIA
-        ? SKIA.Skia.Path.Circle(center, center, radius)
-        : null;
-
-      return {
-        isSingleCategory: true,
-        singleColor: color,
-        segmentSlices: [],
-        skiaPaths: skiaSinglePath ? [{ key: 'single-full', path: skiaSinglePath, color }] : [],
-        skiaBgPath: bgPath,
-      };
-    }
-
-    // Multiple categories: sum active items
-    const activeTotal = processedCategories.reduce((acc, item) => acc + item.amount, 0);
-    const denominator = activeTotal > 0 ? activeTotal : safeTotal;
-
-    const GAP_DEGREES = 3.5;
-    const gapPx = (GAP_DEGREES / 360) * circumference;
-
-    let accumulatedDegrees = -90; // Start at 12 o'clock
-    let accumulatedPct = 0;
-
-    const oval = IS_SKIA_AVAILABLE && SKIA
-      ? SKIA.Skia.XYWHRect(center - radius, center - radius, radius * 2, radius * 2)
-      : null;
-
-    const skiaList: Array<{ key: string; path: any; color: string }> = [];
-
-    const slices = processedCategories.map((item, idx) => {
-      const share = item.amount / denominator;
-      const rawDegrees = share * 360;
-      const rawSliceLength = share * circumference;
-
-      // Apply gap only between segments longer than the gap; clamp min sweep
-      const canApplyGap = rawDegrees > GAP_DEGREES * 2;
-      const sweepDegrees = canApplyGap ? rawDegrees - GAP_DEGREES : Math.max(2, rawDegrees);
-      const drawnLength = canApplyGap ? rawSliceLength - gapPx : Math.max(3, rawSliceLength);
-
-      const color = item.color || theme.colors.primary;
-      const key = item.categoryId || `${item.name}-${idx}`;
-
-      // Build immutable Skia path using Skia.PathBuilder.Make().addArc().build()
-      if (IS_SKIA_AVAILABLE && SKIA && oval) {
-        const builder = SKIA.Skia.PathBuilder.Make();
-        builder.addArc(oval, accumulatedDegrees, sweepDegrees);
-        const segPath = builder.build();
-        skiaList.push({
-          key,
-          path: segPath,
-          color,
-        });
+      let categories: DonutChartItem[] = [];
+      if (validTotal > 0 && validCategories.length > 0) {
+        if (validCategories.length <= 5) {
+          categories = validCategories;
+        } else {
+          const top5 = validCategories.slice(0, 5);
+          const remainder = validCategories.slice(5);
+          const othersAmount = remainder.reduce(
+            (sum, item) => sum + (Number(item.amount) || 0),
+            0
+          );
+          if (othersAmount > 0) {
+            top5.push({
+              categoryId: 'others-merged',
+              name: 'Others',
+              amount: othersAmount,
+              color: theme.colors.outlineVariant,
+            });
+          }
+          categories = top5;
+        }
       }
 
-      // Precompute SVG stroke dash arrays and offsets
-      const offset = -(accumulatedPct * circumference);
-      accumulatedPct += share;
-      accumulatedDegrees += rawDegrees;
+      const withData = validTotal > 0 && categories.length > 0;
+      const isSingle = categories.length === 1;
+      const colorSingle = isSingle ? categories[0].color || theme.colors.primary : theme.colors.primary;
+      const formatted = formatIndianCurrencyWorklet(validTotal, '₹');
+
+      if (!withData || isSingle) {
+        return {
+          hasData: withData,
+          safeTotal: validTotal,
+          isSingleCategory: isSingle,
+          singleColor: colorSingle,
+          segmentSlices: [],
+          processedCategories: categories,
+          formattedTotal: formatted,
+        };
+      }
+
+      // 2+ categories: compute slices with gap and dashoffset
+      const activeTotal = categories.reduce((sum, item) => sum + item.amount, 0);
+      const denominator = activeTotal > 0 ? activeTotal : validTotal;
+
+      const GAP_DEGREES = 3;
+      const gapPx = (GAP_DEGREES / 360) * circumference;
+
+      let accumulatedOffset = 0;
+      const slices = categories.map((item, idx) => {
+        const share = item.amount / denominator;
+        const rawSliceLength = share * circumference;
+
+        const canApplyGap = categories.length > 1 && rawSliceLength > gapPx * 1.5;
+        const drawnLength = canApplyGap
+          ? Math.max(2, rawSliceLength - gapPx)
+          : Math.max(1, Math.min(rawSliceLength, 2));
+
+        const color = item.color || theme.colors.primary;
+        const key = item.categoryId || `${item.name}-${idx}`;
+
+        const sliceData = {
+          key,
+          color,
+          dashArray: `${drawnLength.toFixed(2)} ${(circumference - drawnLength).toFixed(2)}`,
+          dashOffset: -accumulatedOffset,
+        };
+
+        accumulatedOffset += rawSliceLength;
+        return sliceData;
+      });
 
       return {
-        key,
-        color,
-        dashArray: `${drawnLength.toFixed(1)} ${circumference.toFixed(1)}`,
-        dashOffset: offset,
+        hasData: withData,
+        safeTotal: validTotal,
+        isSingleCategory: isSingle,
+        singleColor: colorSingle,
+        segmentSlices: slices,
+        processedCategories: categories,
+        formattedTotal: formatted,
       };
-    });
-
-    return {
-      isSingleCategory: false,
-      singleColor: theme.colors.primary,
-      segmentSlices: slices,
-      skiaPaths: skiaList,
-      skiaBgPath: bgPath,
-    };
-  }, [hasData, processedCategories, safeTotal, size, strokeWidth, center, radius, circumference]);
+    }, [data, totalAmount, size, strokeWidth, circumference]);
 
   return (
-    <Animated.View
+    <View
       style={[
         styles.container,
         !showLegend && styles.containerCentered,
-        animatedContainerStyle,
       ]}
     >
       {/* Fixed-Size Chart Container (Layout never jumps) */}
       <View style={[styles.chartWrapper, { width: size, height: size }]}>
-        {/* Render with Skia Canvas when available, otherwise rock-solid SVG */}
-        {IS_SKIA_AVAILABLE && CanvasComponent && PathComponent ? (
-          <CanvasComponent
-            key={`donut-canvas-${surfaceKey}`}
-            style={{ width: size, height: size }}
-          >
-            {/* Background Track Ring */}
-            {skiaBgPath ? (
-              <PathComponent
-                path={skiaBgPath}
-                style="stroke"
-                strokeWidth={strokeWidth}
-                color={theme.colors.surfaceContainerHigh}
-              />
-            ) : null}
+        <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+          {/* Base gray background track ring */}
+          <Circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke={theme.colors.surfaceContainerHigh}
+            strokeWidth={strokeWidth}
+          />
 
-            {/* Single Category Full Circle (Never an arc) */}
-            {isSingleCategory && skiaPaths[0] ? (
-              <PathComponent
-                path={skiaPaths[0].path}
-                style="stroke"
-                strokeWidth={strokeWidth}
-                strokeCap="round"
-                color={singleColor}
-                start={0}
-                end={sweepProgress}
-              />
-            ) : null}
-
-            {/* Multiple Segmented Slices with UI-Thread Reanimated Trim */}
-            {!isSingleCategory &&
-              skiaPaths.map((seg) => (
-                <PathComponent
-                  key={seg.key}
-                  path={seg.path}
-                  style="stroke"
-                  strokeWidth={strokeWidth}
-                  strokeCap="round"
-                  color={seg.color}
-                  start={0}
-                  end={sweepProgress}
-                />
-              ))}
-          </CanvasComponent>
-        ) : (
-          <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={styles.svgRotate}>
-            {/* Base background ring */}
+          {/* Single Category 100%: full-circle stroke with no dasharray */}
+          {isSingleCategory && (
             <Circle
               cx={center}
               cy={center}
               r={radius}
-              fill="transparent"
-              stroke={theme.colors.surfaceContainerHigh}
+              fill="none"
+              stroke={singleColor}
               strokeWidth={strokeWidth}
             />
+          )}
 
-            {/* Single Category 100%: Full Circle without dasharray (Never collapses) */}
-            {isSingleCategory && (
-              <Circle
-                cx={center}
-                cy={center}
-                r={radius}
-                fill="transparent"
-                stroke={singleColor}
-                strokeWidth={strokeWidth}
-              />
-            )}
-
-            {/* Multiple Segment Slices */}
-            {!isSingleCategory &&
-              segmentSlices.map((slice) => (
+          {/* Multiple Segments inside <G> rotated -90 degrees around center */}
+          {!isSingleCategory && segmentSlices.length > 0 && (
+            <G rotation="-90" origin={`${center}, ${center}`}>
+              {segmentSlices.map((slice) => (
                 <Circle
                   key={slice.key}
                   cx={center}
                   cy={center}
                   r={radius}
-                  fill="transparent"
+                  fill="none"
                   stroke={slice.color}
                   strokeWidth={strokeWidth}
                   strokeDasharray={slice.dashArray}
@@ -401,30 +177,30 @@ export const DonutChart = memo(function DonutChart({
                   strokeLinecap="round"
                 />
               ))}
-          </Svg>
-        )}
+            </G>
+          )}
+        </Svg>
 
-        {/* Center Label with Smooth Cross-Fade */}
-        <Animated.View style={[styles.centerLabel, animatedLabelStyle]}>
+        {/* Center Label Overlay (Normal Text in absolutely positioned View) */}
+        <View style={styles.centerLabel} pointerEvents="none">
           <Text style={styles.centerSub} numberOfLines={1}>
             {centerSubtitle}
           </Text>
 
           {centerTitle ? (
-            <Text style={[styles.centerMain, { maxWidth: size - strokeWidth * 2 - 8 }]} numberOfLines={1}>
+            <Text
+              style={[styles.centerMain, { maxWidth: size - strokeWidth * 2 - 8 }]}
+              numberOfLines={1}
+            >
               {centerTitle}
             </Text>
           ) : (
-            <AnimatedTextInput
-              underlineColorAndroid="transparent"
-              editable={false}
-              style={[
-                styles.centerMain,
-                styles.animatedInputReset,
-                { maxWidth: size - strokeWidth * 2 - 8 },
-              ]}
-              animatedProps={animatedCenterTotalProps}
-            />
+            <Text
+              style={[styles.centerMain, { maxWidth: size - strokeWidth * 2 - 8 }]}
+              numberOfLines={1}
+            >
+              {formattedTotal}
+            </Text>
           )}
 
           {centerTitleValue ? (
@@ -432,7 +208,7 @@ export const DonutChart = memo(function DonutChart({
               {centerTitleValue}
             </Text>
           ) : null}
-        </Animated.View>
+        </View>
       </View>
 
       {/* Optional Legend Breakdown (Used on Home; Report uses its own list) */}
@@ -462,7 +238,7 @@ export const DonutChart = memo(function DonutChart({
           )}
         </View>
       )}
-    </Animated.View>
+    </View>
   );
 });
 
@@ -484,11 +260,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
   },
-  svgRotate: {
-    transform: [{ rotate: '-90deg' }],
-  },
   centerLabel: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
@@ -506,11 +283,6 @@ const styles = StyleSheet.create({
     color: theme.colors.onSurface,
     letterSpacing: -0.3,
     textAlign: 'center',
-  },
-  animatedInputReset: {
-    padding: 0,
-    margin: 0,
-    borderWidth: 0,
   },
   centerPct: {
     fontSize: 12,
