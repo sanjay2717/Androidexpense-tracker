@@ -11,6 +11,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.putu.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -35,10 +36,18 @@
         }
       ],
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1799e876-662e-4054-af65-afa13d6bb386"
+      }
+    },
+    "owner": "elevatex32"
   }
 }
