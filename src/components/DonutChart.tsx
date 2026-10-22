@@ -224,7 +224,12 @@ export const DonutChart = memo(function DonutChart({
                   </Text>
                 </View>
                 <Text style={styles.legendPct}>
-                  {`${Math.round((item.amount / safeTotal) * 100)}%`}
+                  {(() => {
+                    const pct = (item.amount / safeTotal) * 100;
+                    if (item.amount <= 0) return '0%';
+                    if (pct < 1) return '<1%';
+                    return `${Math.round(pct)}%`;
+                  })()}
                 </Text>
               </View>
             ))
