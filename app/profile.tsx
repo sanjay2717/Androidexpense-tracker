@@ -40,6 +40,7 @@ import {
 } from '../src/components/Icons';
 import { theme } from '../src/theme';
 import { safeBack } from '../src/lib/nav';
+import { AppHeader } from '../src/components/AppHeader';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -215,21 +216,8 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.root}>
-      {/* Top Header Bar */}
-      <View style={[styles.headerBar, { paddingTop: Math.max(insets.top, 12) }]}>
-        <TouchableOpacity
-          onPress={handleBack}
-          style={styles.backButton}
-          activeOpacity={0.7}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <ArrowBackIcon size={24} color={theme.colors.onSurface} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <View style={styles.headerRightBadge}>
-          <PersonOutlineIcon size={18} color={theme.colors.white} />
-        </View>
-      </View>
+      {/* Universal Inset AppHeader */}
+      <AppHeader variant="stack" title="Profile" />
 
       <ScrollView
         style={styles.scroll}
