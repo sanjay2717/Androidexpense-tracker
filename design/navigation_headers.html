@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;min-height:100%;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "on-tertiary-container": "#fffbff", "inverse-primary": "#ffb1c0", "on-surface": "#1a1b1f", "on-tertiary-fixed": "#0c006a", "on-secondary-container": "#646464", "on-secondary-fixed": "#1b1b1b", "secondary-fixed": "#e2e2e2", "primary-container": "#e40a65", "surface-variant": "#e3e2e7", "on-primary-fixed-variant": "#90003d", "on-primary-fixed": "#3f0017", "surface-container": "#eeedf3", "on-error": "#ffffff", "surface-dim": "#dad9df", "on-primary-container": "#fffbff", "background": "#faf9fe", "secondary-fixed-dim": "#c6c6c6", "inverse-on-surface": "#f1f0f5", "on-surface-variant": "#5b3f44", "outline-variant": "#e4bdc3", "surface-container-high": "#e9e7ed", "surface-tint": "#bc0051", "tertiary-fixed-dim": "#c2c1ff", "outline": "#8f6f74", "primary-fixed-dim": "#ffb1c0", "primary": "#b7004f", "tertiary-fixed": "#e2dfff", "surface-bright": "#faf9fe", "on-error-container": "#93000a", "error": "#ba1a1a", "on-primary": "#ffffff", "on-secondary-fixed-variant": "#474747", "secondary-container": "#e2e2e2", "on-background": "#1a1b1f", "on-tertiary-fixed-variant": "#3631b4", "on-secondary": "#ffffff", "surface-container-low": "#f4f3f8", "on-tertiary": "#ffffff", "secondary": "#5e5e5e", "error-container": "#ffdad6", "inverse-surface": "#2f3034", "tertiary": "#4c4aca", "surface-container-highest": "#e3e2e7", "surface": "#faf9fe", "primary-fixed": "#ffd9df", "tertiary-container": "#6664e4", "surface-container-lowest": "#ffffff" }, "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" }, "spacing": { "gutter": "1rem", "space-xl": "2.5rem", "gutter-mobile": "0.75rem", "space-md": "1rem", "margin": "2rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "space-sm": "0.5rem", "margin-mobile": "1rem" }, "fontFamily": { "callout": ["Inter"], "headline": ["Inter"], "display-large": ["Inter"], "subheadline": ["Inter"], "title-2": ["Inter"], "caption": ["Inter"], "title-1": ["Inter"], "body": ["Inter"], "numeral-hero-mobile": ["Inter"], "title-3": ["Inter"], "numeral-hero": ["Inter"], "display-large-mobile": ["Inter"], "footnote": ["Inter"] }, "fontSize": { "callout": ["16px", { "lineHeight": "21px", "letterSpacing": "-0.01em", "fontWeight": "500" }], "headline": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "display-large": ["44px", { "lineHeight": "52px", "letterSpacing": "-0.04em", "fontWeight": "800" }], "subheadline": ["15px", { "lineHeight": "20px", "letterSpacing": "-0.005em", "fontWeight": "400" }], "title-2": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.02em", "fontWeight": "700" }], "caption": ["11px", { "lineHeight": "13px", "letterSpacing": "0.01em", "fontWeight": "500" }], "title-1": ["28px", { "lineHeight": "34px", "letterSpacing": "-0.025em", "fontWeight": "700" }], "body": ["17px", { "lineHeight": "22px", "letterSpacing": "-0.01em", "fontWeight": "400" }], "numeral-hero-mobile": ["36px", { "lineHeight": "40px", "letterSpacing": "-0.04em", "fontWeight": "800" }], "title-3": ["20px", { "lineHeight": "25px", "letterSpacing": "-0.015em", "fontWeight": "600" }], "numeral-hero": ["48px", { "lineHeight": "52px", "letterSpacing": "-0.05em", "fontWeight": "800" }], "display-large-mobile": ["34px", { "lineHeight": "40px", "letterSpacing": "-0.035em", "fontWeight": "800" }], "footnote": ["13px", { "lineHeight": "18px", "letterSpacing": "0em", "fontWeight": "400" }] } } } };</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface text-on-surface antialiased flex flex-col min-h-screen pt-safe pb-safe selection:bg-primary-fixed selection:text-on-primary-fixed"><main class="flex-1 flex flex-col relative w-full bg-surface"><div class="flex flex-col w-full px-gutter-mobile py-space-md gap-space-lg">
+<!-- Document / Component Reference Header -->
+<header class="flex flex-col gap-space-xs pt-space-xs">
+<div class="inline-flex items-center gap-space-xs self-start px-space-sm py-0.5 rounded-full bg-surface-container text-on-surface-variant font-caption text-caption tracking-wider uppercase font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+      Component Spec · Top Bar
+    </div>
+<h1 class="font-title-1 text-title-1 text-on-surface tracking-tight">Navigation &amp; Headers</h1>
+<p class="font-subheadline text-subheadline text-on-surface-variant">Light mode common app bar patterns for Putu iOS</p>
+</header>
+<!-- Spec Sections Container -->
+<div class="flex flex-col gap-space-xl">
+<!-- VARIANT 01 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">01</span>
+<h2 class="font-headline text-headline text-on-surface">Home Screen Header</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 68px · Inset Grouped</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: User Profile Pill -->
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="relative flex-shrink-0 w-11 h-11 rounded-full bg-gradient-to-tr from-primary to-primary-container flex items-center justify-center text-on-primary font-headline text-headline font-bold shadow-sm">
+              SR
+            </div>
+<div class="flex flex-col min-w-0">
+<span class="font-caption text-caption tracking-widest text-secondary uppercase font-semibold">Good Afternoon</span>
+<span class="font-headline text-headline text-on-surface truncate">Sanjay R</span>
+</div>
+</div>
+<!-- Right: Quick Actions -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<!-- Notification Button with Unread Pip -->
+<button aria-label="Notifications" class="relative w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span>
+</button>
+<!-- Settings Button -->
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">account_circle</span>
+          Avatar: 44px
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">touch_app</span>
+          Targets: 40px
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">space_bar</span>
+          Gap: 8px
+        </span>
+</div>
+</section>
+<!-- VARIANT 02 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">02</span>
+<h2 class="font-headline text-headline text-on-surface">Tab Page Header with Action (Wallets)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Primary Action</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Big Title -->
+<div class="flex items-center min-w-0">
+<h3 class="font-title-2 text-title-2 text-on-surface font-bold tracking-tight">Wallets</h3>
+</div>
+<!-- Right: Action Suite -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<!-- Add Wallet Primary Action Button -->
+<button aria-label="Add new wallet" class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center active:scale-95 transition-transform shadow-sm" type="button">
+<span class="material-symbols-outlined text-[22px] font-bold">add</span>
+</button>
+<!-- Notifications (Default) -->
+<button aria-label="Notifications" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<!-- Settings -->
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">format_size</span>
+          Title: Title 2 Bold
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">palette</span>
+          CTA: #FF2D78 Fill
+        </span>
+</div>
+</section>
+<!-- VARIANT 03 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">03</span>
+<h2 class="font-headline text-headline text-on-surface">Stack / Subpage Header (Settings Active)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Nav Stack</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Back Action + Page Title -->
+<div class="flex items-center gap-space-xs min-w-0">
+<button aria-label="Navigate back" class="w-9 h-9 -ml-1 rounded-full flex items-center justify-center text-on-surface active:bg-surface-container-low transition-colors" type="button">
+<span class="material-symbols-outlined text-[26px]">chevron_left</span>
+</button>
+<h3 class="font-title-3 text-title-3 text-on-surface font-bold tracking-tight">Settings</h3>
+</div>
+<!-- Right: Notifications + Active State Settings Button -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button aria-label="Notifications" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<!-- Active Selected State for Current Subpage -->
+<button aria-label="Settings (Active)" class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary active:scale-95 transition-transform" style="font-variation-settings: 'FILL' 1;" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">arrow_back_ios</span>
+          Back Hit Area: 44x44px
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">toggle_on</span>
+          Active Tint: Primary-Fixed
+        </span>
+</div>
+</section>
+<!-- VARIANT 04 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">04</span>
+<h2 class="font-headline text-headline text-on-surface">Notifications (Stack)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Nav Stack · Bell Active</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Back Action + Page Title -->
+<div class="flex items-center gap-space-xs min-w-0">
+<button aria-label="Navigate back" class="w-9 h-9 -ml-1 rounded-full flex items-center justify-center text-on-surface active:bg-surface-container-low transition-colors" type="button">
+<span class="material-symbols-outlined text-[26px]">chevron_left</span>
+</button>
+<h3 class="font-title-3 text-title-3 text-on-surface font-semibold tracking-tight">Notifications</h3>
+</div>
+<!-- Right: Bell Active + Settings Button -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<!-- Active Bell Button in Tint State (#FDF2F5 / primary-fixed) -->
+<button aria-label="Notifications (Active)" class="w-10 h-10 rounded-full bg-[#fdf2f5] flex items-center justify-center text-primary active:scale-95 transition-transform" style="font-variation-settings: 'FILL' 1;" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<!-- Settings Button -->
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">arrow_back_ios</span>
+          Back Hit Area: 44x44px
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">notifications_active</span>
+          Active Tint: Bell #FF2D78
+        </span>
+</div>
+</section>
+<!-- VARIANT 05 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">05</span>
+<h2 class="font-headline text-headline text-on-surface">Wallets (Tab with Action)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Tab Header · Primary Action</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Big Title -->
+<div class="flex items-center min-w-0">
+<h3 class="font-title-2 text-title-2 text-on-surface font-bold tracking-tight">Wallets</h3>
+</div>
+<!-- Right: Action Suite -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<!-- Add CTA Button -->
+<button aria-label="Add new wallet" class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center active:scale-95 transition-transform shadow-sm" type="button">
+<span class="material-symbols-outlined text-[22px] font-bold">add</span>
+</button>
+<!-- Notifications with Unread Pip -->
+<button aria-label="Notifications" class="relative w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span>
+</button>
+<!-- Settings -->
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">format_size</span>
+          Title: Title 2 Bold
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">palette</span>
+          CTA: #FF2D78 Fill
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">mark_email_unread</span>
+          Unread Pip
+        </span>
+</div>
+</section>
+<!-- VARIANT 06 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">06</span>
+<h2 class="font-headline text-headline text-on-surface">Report (Tab)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Standard Tab Header</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Big Title -->
+<div class="flex items-center min-w-0">
+<h3 class="font-title-2 text-title-2 text-on-surface font-bold tracking-tight">Report</h3>
+</div>
+<!-- Right: Action Suite (Dual Utility Actions, No Page Action) -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button aria-label="Notifications" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">format_size</span>
+          Title: Title 2 Bold
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">tune</span>
+          Dual Utility Actions
+        </span>
+</div>
+</section>
+<!-- VARIANT 07 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">07</span>
+<h2 class="font-headline text-headline text-on-surface">Planning (Tab with Action)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Tab Header · Contextual Action</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Big Title -->
+<div class="flex items-center min-w-0">
+<h3 class="font-title-2 text-title-2 text-on-surface font-bold tracking-tight">Planning</h3>
+</div>
+<!-- Right: Action Suite -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button aria-label="Add planning item" class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center active:scale-95 transition-transform shadow-sm" type="button">
+<span class="material-symbols-outlined text-[22px] font-bold">add</span>
+</button>
+<button aria-label="Notifications" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">info</span>
+          Action adds a budget or goal depending on active segment
+        </span>
+</div>
+</section>
+<!-- VARIANT 08 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">08</span>
+<h2 class="font-headline text-headline text-on-surface">Categories (Stack with Action)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Nav Stack · Contextual Action</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Back Action + Page Title -->
+<div class="flex items-center gap-space-xs min-w-0">
+<button aria-label="Navigate back" class="w-9 h-9 -ml-1 rounded-full flex items-center justify-center text-on-surface active:bg-surface-container-low transition-colors" type="button">
+<span class="material-symbols-outlined text-[26px]">chevron_left</span>
+</button>
+<h3 class="font-title-3 text-title-3 text-on-surface font-bold tracking-tight">Categories</h3>
+</div>
+<!-- Right: Add Action + Bell + Gear -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button aria-label="Add category" class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center active:scale-95 transition-transform shadow-sm" type="button">
+<span class="material-symbols-outlined text-[22px] font-bold">add</span>
+</button>
+<button aria-label="Notifications" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">arrow_back_ios</span>
+          Left-aligned title with chevron
+        </span>
+<span>•</span>
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">add_circle</span>
+          Primary stack creation action
+        </span>
+</div>
+</section>
+<!-- VARIANT 09 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">09</span>
+<h2 class="font-headline text-headline text-on-surface">Transactions (Stack with Action)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Nav Stack · Filter Indicator</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Back Action + Page Title -->
+<div class="flex items-center gap-space-xs min-w-0">
+<button aria-label="Navigate back" class="w-9 h-9 -ml-1 rounded-full flex items-center justify-center text-on-surface active:bg-surface-container-low transition-colors" type="button">
+<span class="material-symbols-outlined text-[26px]">chevron_left</span>
+</button>
+<h3 class="font-title-3 text-title-3 text-on-surface font-bold tracking-tight">Transactions</h3>
+</div>
+<!-- Right: Filter with active pip + Bell + Gear -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button aria-label="Filter transactions" class="relative w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">tune</span>
+<span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary ring-2 ring-surface-container-lowest"></span>
+</button>
+<button aria-label="Notifications" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">filter_list</span>
+          Filter button indicates active criteria via accent pip
+        </span>
+</div>
+</section>
+<!-- VARIANT 10 -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-footnote text-footnote font-semibold text-primary">10</span>
+<h2 class="font-headline text-headline text-on-surface">Profile (Stack)</h2>
+</div>
+<span class="font-caption text-caption text-secondary">h: 64px · Nav Stack · Standard Utilities</span>
+</div>
+<!-- Component Preview Stage -->
+<div class="p-space-md rounded-2xl bg-surface-container-low shadow-sm">
+<div class="w-full bg-surface-container-lowest rounded-2xl px-space-md py-space-sm flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
+<!-- Left: Back Action + Page Title -->
+<div class="flex items-center gap-space-xs min-w-0">
+<button aria-label="Navigate back" class="w-9 h-9 -ml-1 rounded-full flex items-center justify-center text-on-surface active:bg-surface-container-low transition-colors" type="button">
+<span class="material-symbols-outlined text-[26px]">chevron_left</span>
+</button>
+<h3 class="font-title-3 text-title-3 text-on-surface font-bold tracking-tight">Profile</h3>
+</div>
+<!-- Right: Notifications + Settings (Standard Utilities) -->
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button aria-label="Notifications" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+<button aria-label="Settings" class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-on-surface active:scale-95 transition-transform" type="button">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Micro Specs -->
+<div class="flex items-center gap-space-sm px-space-xs text-secondary font-caption text-caption">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">arrow_back_ios</span>
+          Standard stack navigation without auxiliary page action
+        </span>
+</div>
+</section>
+<!-- COMPONENT ANATOMY & TOKEN SPECS -->
+<section class="flex flex-col gap-space-sm mt-space-xs">
+<div class="px-space-xs">
+<h2 class="font-headline text-headline text-on-surface">Component Anatomy &amp; Token Specs</h2>
+<p class="font-footnote text-footnote text-secondary">Strict Apple Human Interface tokens implemented across all Putu navigation bars</p>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl p-space-md flex flex-col gap-space-md shadow-sm">
+<!-- Token Grid -->
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col gap-0.5">
+<span class="font-caption text-caption text-secondary uppercase font-semibold">Canvas Backdrop</span>
+<span class="font-callout text-callout text-on-surface font-bold">#F2F2F7</span>
+<span class="font-caption text-caption text-on-surface-variant">Tier 0 iOS System Gray 6</span>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col gap-0.5">
+<span class="font-caption text-caption text-secondary uppercase font-semibold">Surface Tier 1</span>
+<span class="font-callout text-callout text-on-surface font-bold">#FFFFFF</span>
+<span class="font-caption text-caption text-on-surface-variant">Diffuse 20px blur / 4% α</span>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col gap-0.5">
+<span class="font-caption text-caption text-secondary uppercase font-semibold">Action Target</span>
+<span class="font-callout text-callout text-on-surface font-bold">40 × 40 px</span>
+<span class="font-caption text-caption text-on-surface-variant">Min hit frame 44 × 44 pt</span>
+</div>
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col gap-0.5">
+<span class="font-caption text-caption text-secondary uppercase font-semibold">Accent Energy</span>
+<span class="font-callout text-callout text-primary font-bold">#FF2D78</span>
+<span class="font-caption text-caption text-on-surface-variant">Electric Putu Pink (Solid)</span>
+</div>
+</div>
+<!-- Interactive States & Behaviors -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<span class="font-footnote text-footnote font-semibold text-on-surface">Behaviors &amp; Alignment Rules</span>
+<div class="flex flex-col gap-space-xs font-footnote text-footnote text-on-surface-variant">
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5 flex-shrink-0">check_circle</span>
+<span><strong>Unread Notification Pip:</strong> 8px solid primary dot pinned `top: 8px, right: 8px` inside action circle, with a 2px mask ring matching the container background.</span>
+</div>
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5 flex-shrink-0">check_circle</span>
+<span><strong>Touch Press State:</strong> Buttons trigger `scale(0.97)` physical response with a 150ms spring curve to preserve tactile hardware quality.</span>
+</div>
+<div class="flex items-start gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[18px] mt-0.5 flex-shrink-0">check_circle</span>
+<span><strong>Subpage Chevron Hit Box:</strong> 26px SF-style left chevron padded seamlessly into the leading edge without pushing the screen label off-axis.</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- NAVIGATION & STATE RULES CALLOUT BOX -->
+<section class="flex flex-col gap-space-sm">
+<div class="px-space-xs">
+<h2 class="font-headline text-headline text-on-surface">Navigation &amp; State Rules</h2>
+</div>
+<div class="bg-surface-container-lowest rounded-2xl p-space-md flex flex-col gap-space-sm border border-outline-variant/30 shadow-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5 flex-shrink-0">palette</span>
+<div class="font-footnote text-footnote text-on-surface">
+<strong>Highlight Rule:</strong> The current page's icon is highlighted: Settings → gear active; Notifications → bell active; everywhere else both are neutral.
+</div>
+</div>
+<div class="w-full h-px bg-surface-container"></div>
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5 flex-shrink-0">circle_notifications</span>
+<div class="font-footnote text-footnote text-on-surface">
+<strong>Unread Indicator:</strong> The bell shows the pink pip only when there are unread notifications.
+</div>
+</div>
+<div class="w-full h-px bg-surface-container"></div>
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5 flex-shrink-0">space_dashboard</span>
+<div class="font-footnote text-footnote text-on-surface">
+<strong>Layout Safety:</strong> On stack pages the title is left-aligned next to the chevron so a page action never collides with it.
+</div>
+</div>
+</div>
+</section>
+</div>
+</div></main></body></html>

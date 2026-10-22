@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><meta content="mobile_blank" name="shell-type"/><style>@layer base{html,body{width:100vw;margin:0;padding:0;}body{overscroll-behavior:none;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"tertiary-fixed":"#e2dfff","surface-container-highest":"#e3e2e7","on-primary-container":"#fffbff","surface-bright":"#faf9fe","surface-variant":"#e3e2e7","primary-container":"#e40a65","secondary":"#5e5e5e","on-secondary-fixed":"#1b1b1b","surface-container":"#eeedf3","inverse-on-surface":"#f1f0f5","secondary-fixed":"#e2e2e2","primary":"#b7004f","inverse-primary":"#ffb1c0","primary-fixed":"#ffd9df","surface":"#faf9fe","on-surface-variant":"#5b3f44","on-error-container":"#93000a","primary-fixed-dim":"#ffb1c0","on-tertiary-container":"#fffbff","on-primary-fixed-variant":"#90003d","on-primary":"#ffffff","error-container":"#ffdad6","surface-container-lowest":"#ffffff","tertiary":"#4c4aca","on-secondary":"#ffffff","surface-container-high":"#e9e7ed","error":"#ba1a1a","on-tertiary-fixed-variant":"#3631b4","on-tertiary-fixed":"#0c006a","surface-container-low":"#f4f3f8","inverse-surface":"#2f3034","on-tertiary":"#ffffff","on-secondary-fixed-variant":"#474747","secondary-container":"#e2e2e2","secondary-fixed-dim":"#c6c6c6","tertiary-container":"#6664e4","tertiary-fixed-dim":"#c2c1ff","background":"#faf9fe","on-secondary-container":"#646464","on-error":"#ffffff","outline-variant":"#e4bdc3","on-primary-fixed":"#3f0017","on-background":"#1a1b1f","surface-dim":"#dad9df","outline":"#8f6f74","surface-tint":"#bc0051","on-surface":"#1a1b1f"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"margin":"2rem","gutter-mobile":"0.75rem","gutter":"1rem","space-lg":"1.5rem","space-md":"1rem","margin-mobile":"1rem","space-sm":"0.5rem","space-xs":"0.25rem","space-xl":"2.5rem"},"fontFamily":{"display-large-mobile":["Inter"],"subheadline":["Inter"],"callout":["Inter"],"display-large":["Inter"],"headline":["Inter"],"body":["Inter"],"numeral-hero-mobile":["Inter"],"title-2":["Inter"],"footnote":["Inter"],"numeral-hero":["Inter"],"caption":["Inter"],"title-3":["Inter"],"title-1":["Inter"]},"fontSize":{"display-large-mobile":["34px",{"lineHeight":"40px","letterSpacing":"-0.035em","fontWeight":"800"}],"subheadline":["15px",{"lineHeight":"20px","letterSpacing":"-0.005em","fontWeight":"400"}],"callout":["16px",{"lineHeight":"21px","letterSpacing":"-0.01em","fontWeight":"500"}],"display-large":["44px",{"lineHeight":"52px","letterSpacing":"-0.04em","fontWeight":"800"}],"headline":["17px",{"lineHeight":"22px","letterSpacing":"-0.015em","fontWeight":"600"}],"body":["17px",{"lineHeight":"22px","letterSpacing":"-0.01em","fontWeight":"400"}],"numeral-hero-mobile":["36px",{"lineHeight":"40px","letterSpacing":"-0.04em","fontWeight":"800"}],"title-2":["22px",{"lineHeight":"28px","letterSpacing":"-0.02em","fontWeight":"700"}],"footnote":["13px",{"lineHeight":"18px","letterSpacing":"0em","fontWeight":"400"}],"numeral-hero":["48px",{"lineHeight":"52px","letterSpacing":"-0.05em","fontWeight":"800"}],"caption":["11px",{"lineHeight":"13px","letterSpacing":"0em","fontWeight":"500"}],"title-3":["20px",{"lineHeight":"25px","letterSpacing":"-0.015em","fontWeight":"600"}],"title-1":["28px",{"lineHeight":"34px","letterSpacing":"-0.025em","fontWeight":"700"}]}}}};</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-on-background/40 font-body text-body text-on-surface flex flex-col justify-end min-h-screen"><div class="fixed inset-0 bg-on-background/30 backdrop-blur-sm -z-10"></div><div class="relative w-full bg-surface-container-lowest rounded-t-[28px] shadow-[0_12px_32px_rgba(0,0,0,0.12)] flex flex-col max-h-[813px] overflow-hidden pt-space-sm pb-safe"><div class="flex justify-center items-center py-space-xs"><div class="w-9 h-1 rounded-full bg-outline-variant/60"></div></div><div class="h-12 px-gutter flex items-center justify-between"><h2 class="font-headline text-headline text-on-surface">Add Expense Modal</h2><button class="w-11 h-11 flex items-center justify-center rounded-full text-secondary hover:text-on-surface transition-colors" onclick="history.back()"><span class="material-symbols-outlined text-[20px]">close</span></button></div><main class="flex flex-col relative w-full overflow-y-auto bg-surface-container-lowest px-gutter pb-space-lg"><div class="flex flex-col w-full">
+<div class="flex flex-col w-full pb-space-lg">
+<!-- Quick Search / Filter Bar -->
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full mb-space-md">
+<span class="material-symbols-outlined text-secondary text-[20px]">search</span>
+<input class="bg-transparent text-on-surface font-body text-subheadline w-full focus:outline-none placeholder:text-secondary" id="category-search" placeholder="Search categories..." type="text"/>
+<button class="hidden text-secondary p-space-xs flex items-center justify-center" id="clear-search" type="button">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+</button>
+</div>
+<!-- Header Stats Banner -->
+<div class="flex items-center justify-between px-space-xs mb-space-sm">
+<span class="font-subheadline text-subheadline text-secondary tracking-normal">Filter transactions by type</span>
+<span class="font-caption text-caption uppercase tracking-wider bg-primary-fixed text-primary px-space-sm py-[2px] rounded-full font-semibold" id="selected-badge">3 Selected</span>
+</div>
+<!-- Category Inset List Group -->
+<div class="flex flex-col bg-surface-container-lowest rounded-[22px] overflow-hidden shadow-sm" id="category-list">
+<!-- Category 1: Food & Dining (Selected) -->
+<div class="category-item flex items-center justify-between px-space-md py-space-sm min-h-[56px] transition-colors active:bg-surface-container-low cursor-pointer" data-category="food" onclick="toggleCategory(this)">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">restaurant</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline text-headline text-on-surface">Food &amp; Dining</span>
+<span class="font-caption text-caption text-secondary">Cafes, restaurants &amp; bars</span>
+</div>
+</div>
+<div class="check-indicator w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 transition-transform duration-150">
+<span class="material-symbols-outlined text-on-primary text-[16px] font-bold">check</span>
+</div>
+</div>
+<div class="h-[1px] bg-surface-container-highest ml-14"></div>
+<!-- Category 2: Groceries (Selected) -->
+<div class="category-item flex items-center justify-between px-space-md py-space-sm min-h-[56px] transition-colors active:bg-surface-container-low cursor-pointer" data-category="groceries" onclick="toggleCategory(this)">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">local_grocery_store</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline text-headline text-on-surface">Groceries</span>
+<span class="font-caption text-caption text-secondary">Supermarkets &amp; produce</span>
+</div>
+</div>
+<div class="check-indicator w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 transition-transform duration-150">
+<span class="material-symbols-outlined text-on-primary text-[16px] font-bold">check</span>
+</div>
+</div>
+<div class="h-[1px] bg-surface-container-highest ml-14"></div>
+<!-- Category 3: Transit & Travel (Selected) -->
+<div class="category-item flex items-center justify-between px-space-md py-space-sm min-h-[56px] transition-colors active:bg-surface-container-low cursor-pointer" data-category="transit" onclick="toggleCategory(this)">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]">directions_subway</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline text-headline text-on-surface">Transit &amp; Travel</span>
+<span class="font-caption text-caption text-secondary">Metro, flights &amp; fuel</span>
+</div>
+</div>
+<div class="check-indicator w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 transition-transform duration-150">
+<span class="material-symbols-outlined text-on-primary text-[16px] font-bold">check</span>
+</div>
+</div>
+<div class="h-[1px] bg-surface-container-highest ml-14"></div>
+<!-- Category 4: Rent & Bills (Unselected) -->
+<div class="category-item flex items-center justify-between px-space-md py-space-sm min-h-[56px] transition-colors active:bg-surface-container-low cursor-pointer" data-category="bills" onclick="toggleCategory(this)">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[20px]">cottage</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline text-headline text-on-surface">Rent &amp; Bills</span>
+<span class="font-caption text-caption text-secondary">Utilities, internet &amp; rent</span>
+</div>
+</div>
+<div class="check-indicator w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 transition-transform duration-150">
+<span class="material-symbols-outlined text-transparent text-[16px]">check</span>
+</div>
+</div>
+<div class="h-[1px] bg-surface-container-highest ml-14"></div>
+<!-- Category 5: Entertainment (Unselected) -->
+<div class="category-item flex items-center justify-between px-space-md py-space-sm min-h-[56px] transition-colors active:bg-surface-container-low cursor-pointer" data-category="entertainment" onclick="toggleCategory(this)">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[20px]">confirmation_number</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline text-headline text-on-surface">Entertainment</span>
+<span class="font-caption text-caption text-secondary">Cinema, streaming &amp; gigs</span>
+</div>
+</div>
+<div class="check-indicator w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 transition-transform duration-150">
+<span class="material-symbols-outlined text-transparent text-[16px]">check</span>
+</div>
+</div>
+<div class="h-[1px] bg-surface-container-highest ml-14"></div>
+<!-- Category 6: Shopping (Unselected) -->
+<div class="category-item flex items-center justify-between px-space-md py-space-sm min-h-[56px] transition-colors active:bg-surface-container-low cursor-pointer" data-category="shopping" onclick="toggleCategory(this)">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline text-headline text-on-surface">Shopping</span>
+<span class="font-caption text-caption text-secondary">Apparel, tech &amp; home</span>
+</div>
+</div>
+<div class="check-indicator w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 transition-transform duration-150">
+<span class="material-symbols-outlined text-transparent text-[16px]">check</span>
+</div>
+</div>
+<div class="h-[1px] bg-surface-container-highest ml-14"></div>
+<!-- Category 7: Salary & Income (Unselected) -->
+<div class="category-item flex items-center justify-between px-space-md py-space-sm min-h-[56px] transition-colors active:bg-surface-container-low cursor-pointer" data-category="salary" onclick="toggleCategory(this)">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[20px]">payments</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline text-headline text-on-surface">Salary &amp; Income</span>
+<span class="font-caption text-caption text-secondary">Paychecks &amp; dividends</span>
+</div>
+</div>
+<div class="check-indicator w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 transition-transform duration-150">
+<span class="material-symbols-outlined text-transparent text-[16px]">check</span>
+</div>
+</div>
+<div class="h-[1px] bg-surface-container-highest ml-14"></div>
+<!-- Category 8: Healthcare (Unselected) -->
+<div class="category-item flex items-center justify-between px-space-md py-space-sm min-h-[56px] transition-colors active:bg-surface-container-low cursor-pointer" data-category="healthcare" onclick="toggleCategory(this)">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[20px]">vital_signs</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline text-headline text-on-surface">Healthcare</span>
+<span class="font-caption text-caption text-secondary">Pharmacy, clinic &amp; dental</span>
+</div>
+</div>
+<div class="check-indicator w-6 h-6 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0 transition-transform duration-150">
+<span class="material-symbols-outlined text-transparent text-[16px]">check</span>
+</div>
+</div>
+</div>
+<!-- Quick Preset Chips -->
+<div class="flex items-center gap-space-xs mt-space-md overflow-x-auto pb-space-xs">
+<button class="bg-surface-container px-space-md py-space-xs rounded-full font-caption text-caption text-on-surface font-semibold shrink-0 active:scale-95 transition-transform" onclick="selectPreset(['food', 'groceries', 'transit'])" type="button">
+        Frequent
+      </button>
+<button class="bg-surface-container px-space-md py-space-xs rounded-full font-caption text-caption text-on-surface font-semibold shrink-0 active:scale-95 transition-transform" onclick="selectPreset(['bills', 'salary'])" type="button">
+        Monthly Fixed
+      </button>
+<button class="bg-surface-container px-space-md py-space-xs rounded-full font-caption text-caption text-on-surface font-semibold shrink-0 active:scale-95 transition-transform" onclick="selectPreset(['shopping', 'entertainment'])" type="button">
+        Discretionary
+      </button>
+<button class="bg-surface-container px-space-md py-space-xs rounded-full font-caption text-caption text-on-surface font-semibold shrink-0 active:scale-95 transition-transform" onclick="selectAll()" type="button">
+        Select All
+      </button>
+</div>
+<!-- Actions Plinth -->
+<div class="flex flex-col gap-space-xs mt-space-lg pt-space-xs">
+<div class="flex items-center gap-space-sm">
+<button class="h-12 px-space-md rounded-[16px] bg-surface-container text-secondary font-headline text-headline flex items-center justify-center active:scale-95 transition-transform" id="clear-btn" onclick="clearAll()" type="button">
+          Reset
+        </button>
+<button class="flex-1 h-12 rounded-[16px] bg-primary text-on-primary font-headline text-headline flex items-center justify-center gap-space-xs shadow-md active:scale-[0.98] transition-transform" id="apply-btn" onclick="applyFilters()" type="button">
+<span>Apply</span>
+<span id="btn-count">(3)</span>
+</button>
+</div>
+<!-- Tactile Micro Feedback Toast -->
+<div class="opacity-0 transition-opacity duration-200 text-center text-secondary font-caption text-caption py-space-xs" id="toast">
+        Filter saved to transactions
+      </div>
+</div>
+</div>
+<script>
+    function updateBadgeAndButton() {
+      const selected = document.querySelectorAll('.category-item[data-selected="true"]');
+      const count = selected.length;
+      const badge = document.getElementById('selected-badge');
+      const btnCount = document.getElementById('btn-count');
+      const applyBtn = document.getElementById('apply-btn');
+
+      if (badge && btnCount) {
+        badge.textContent = count === 1 ? '1 Selected' : `${count} Selected`;
+        btnCount.textContent = count > 0 ? `(${count})` : '';
+      }
+
+      if (applyBtn) {
+        if (count === 0) {
+          applyBtn.classList.remove('bg-primary', 'text-on-primary');
+          applyBtn.classList.add('bg-surface-container', 'text-secondary');
+        } else {
+          applyBtn.classList.add('bg-primary', 'text-on-primary');
+          applyBtn.classList.remove('bg-surface-container', 'text-secondary');
+        }
+      }
+    }
+
+    function toggleCategory(row) {
+      const isSelected = row.getAttribute('data-selected') === 'true';
+      const checkIndicator = row.querySelector('.check-indicator');
+      const iconWrap = row.querySelector('.shrink-0');
+      const checkIcon = checkIndicator.querySelector('.material-symbols-outlined');
+
+      if (isSelected) {
+        row.removeAttribute('data-selected');
+        checkIndicator.classList.remove('bg-primary');
+        checkIndicator.classList.add('bg-surface-container-highest');
+        checkIcon.classList.remove('text-on-primary');
+        checkIcon.classList.add('text-transparent');
+        
+        iconWrap.classList.remove('bg-primary-fixed', 'text-primary');
+        iconWrap.classList.add('bg-surface-container', 'text-secondary');
+      } else {
+        row.setAttribute('data-selected', 'true');
+        checkIndicator.classList.add('bg-primary');
+        checkIndicator.classList.remove('bg-surface-container-highest');
+        checkIcon.classList.add('text-on-primary');
+        checkIcon.classList.remove('text-transparent');
+
+        iconWrap.classList.add('bg-primary-fixed', 'text-primary');
+        iconWrap.classList.remove('bg-surface-container', 'text-secondary');
+      }
+      updateBadgeAndButton();
+    }
+
+    function clearAll() {
+      document.querySelectorAll('.category-item').forEach(row => {
+        row.removeAttribute('data-selected');
+        const checkIndicator = row.querySelector('.check-indicator');
+        const iconWrap = row.querySelector('.shrink-0');
+        const checkIcon = checkIndicator.querySelector('.material-symbols-outlined');
+        
+        checkIndicator.classList.remove('bg-primary');
+        checkIndicator.classList.add('bg-surface-container-highest');
+        checkIcon.classList.remove('text-on-primary');
+        checkIcon.classList.add('text-transparent');
+        
+        iconWrap.classList.remove('bg-primary-fixed', 'text-primary');
+        iconWrap.classList.add('bg-surface-container', 'text-secondary');
+      });
+      updateBadgeAndButton();
+    }
+
+    function selectAll() {
+      document.querySelectorAll('.category-item').forEach(row => {
+        row.setAttribute('data-selected', 'true');
+        const checkIndicator = row.querySelector('.check-indicator');
+        const iconWrap = row.querySelector('.shrink-0');
+        const checkIcon = checkIndicator.querySelector('.material-symbols-outlined');
+        
+        checkIndicator.classList.add('bg-primary');
+        checkIndicator.classList.remove('bg-surface-container-highest');
+        checkIcon.classList.add('text-on-primary');
+        checkIcon.classList.remove('text-transparent');
+        
+        iconWrap.classList.add('bg-primary-fixed', 'text-primary');
+        iconWrap.classList.remove('bg-surface-container', 'text-secondary');
+      });
+      updateBadgeAndButton();
+    }
+
+    function selectPreset(categoryKeys) {
+      clearAll();
+      categoryKeys.forEach(key => {
+        const row = document.querySelector(`.category-item[data-category="${key}"]`);
+        if (row) {
+          toggleCategory(row);
+        }
+      });
+    }
+
+    function applyFilters() {
+      const toast = document.getElementById('toast');
+      if (toast) {
+        toast.classList.remove('opacity-0');
+        setTimeout(() => {
+          toast.classList.add('opacity-0');
+        }, 1500);
+      }
+    }
+
+    // Initialize initial 3 selections
+    document.addEventListener('DOMContentLoaded', () => {
+      ['food', 'groceries', 'transit'].forEach(cat => {
+        const item = document.querySelector(`.category-item[data-category="${cat}"]`);
+        if (item) {
+          item.setAttribute('data-selected', 'true');
+        }
+      });
+      updateBadgeAndButton();
+
+      const searchInput = document.getElementById('category-search');
+      const clearSearch = document.getElementById('clear-search');
+      
+      if (searchInput && clearSearch) {
+        searchInput.addEventListener('input', (e) => {
+          const val = e.target.value.toLowerCase().trim();
+          clearSearch.classList.toggle('hidden', val.length === 0);
+          
+          document.querySelectorAll('.category-item').forEach(item => {
+            const title = item.querySelector('.font-headline').textContent.toLowerCase();
+            const subtitle = item.querySelector('.font-caption').textContent.toLowerCase();
+            if (title.includes(val) || subtitle.includes(val)) {
+              item.style.display = 'flex';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        });
+
+        clearSearch.addEventListener('click', () => {
+          searchInput.value = '';
+          clearSearch.classList.add('hidden');
+          document.querySelectorAll('.category-item').forEach(item => item.style.display = 'flex');
+        });
+      }
+    });
+
+    // Run directly in case DOMContentLoaded already fired
+    ['food', 'groceries', 'transit'].forEach(cat => {
+      const item = document.querySelector(`.category-item[data-category="${cat}"]`);
+      if (item) {
+        item.setAttribute('data-selected', 'true');
+      }
+    });
+    updateBadgeAndButton();
+  </script>
+</div></main></div></body></html>
