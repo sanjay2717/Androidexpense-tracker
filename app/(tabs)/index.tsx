@@ -19,6 +19,7 @@ import { useLoading } from '../../src/context/LoadingContext';
 import { CountUpText } from '../../src/components/CountUpText';
 import { DonutChart } from '../../src/components/DonutChart';
 import { HomeSkeleton } from '../../src/components/Skeleton';
+import { AppHeader } from '../../src/components/AppHeader';
 import {
   BellIcon,
   TuneIcon,
@@ -32,6 +33,8 @@ import {
   ShieldCheckIcon,
 } from '../../src/components/Icons';
 import { theme } from '../../src/theme';
+
+import { formatMoney } from '../../src/lib/format';
 
 const AVATAR_URL =
   'https://lh3.googleusercontent.com/aida-public/AB6AXuAdqbp3YTpg4Et60AdMRCSqIgEhcZfSr1hamEXUdGzq_pt4mvpjN632b-gwGoe31r92WgE1M7pX82MoeIploaeWsSG4ARFEy-SlYtDG7WSFNkM6WkWNi6VarZtLwCytCuQC7y3oLDVGGPlVQTzgfxcFQg39tbxgMP9x-wojBhiBntmd1r4BGTDMdoomwtXYJRMP1qJ_RaFd3LymtrfpQ-HcwUYe0YZoEGOTcoAEqXUhZ2uXJrLOXRiBBA';
@@ -97,7 +100,10 @@ const HomeTransactionRow = React.memo(function HomeTransactionRow({
             isIncome ? styles.txAmountIncome : styles.txAmountExpense,
           ]}
         >
-          {isIncome ? '+' : '-'}₹{item.amount.toLocaleString('en-IN')}
+          {formatMoney(isIncome ? item.amount : -item.amount, {
+            showPositiveSign: isIncome,
+            decimals: 0,
+          })}
         </Text>
         {walletName ? (
           <Text style={styles.txTag}>{walletName}</Text>
@@ -168,77 +174,9 @@ export default function HomeScreen() {
   }, [isOnline, dataUpdatedAt]);
 
   return (
-    <View style={[styles.rootContainer, { paddingTop: insets.top }]}>
-      {/* Pinned Top Bar / Warm Greeting - stays fixed when scrolling */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity
-            style={styles.avatarContainer}
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.push('/profile');
-            }}
-            activeOpacity={0.8}
-            accessibilityLabel="Open Profile"
-            accessibilityRole="button"
-          >
-            <View style={styles.avatarInitialsCircle}>
-              {isAnonymous ? (
-                <PersonOutlineIcon size={20} color={theme.colors.primaryDark} />
-              ) : (
-                <Text style={styles.avatarInitialsText}>
-                  {user?.user_metadata?.display_name
-                    ? user.user_metadata.display_name
-                        .split(' ')
-                        .map((n: string) => n[0])
-                        .join('')
-                        .slice(0, 2)
-                        .toUpperCase()
-                    : user?.email?.slice(0, 2).toUpperCase() || 'PU'}
-                </Text>
-              )}
-            </View>
-            <View style={styles.avatarDot} />
-          </TouchableOpacity>
-          <View style={styles.headerTextCol}>
-            <Text style={styles.greetingText}>
-              {new Date().getHours() < 12
-                ? 'GOOD MORNING'
-                : new Date().getHours() < 17
-                ? 'GOOD AFTERNOON'
-                : 'GOOD EVENING'}
-            </Text>
-            <View style={styles.nameRow}>
-              <Text style={styles.userName}>
-                {user?.user_metadata?.display_name ||
-                  (isAnonymous ? 'Guest' : user?.email?.split('@')[0] || 'Friend')}
-              </Text>
-              <View style={styles.verifiedDot}>
-                <Text style={styles.verifiedCheck}>✓</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={handleNotificationsPress}
-            activeOpacity={0.7}
-          >
-            <BellIcon size={20} color={theme.colors.secondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerBtn}
-            onPress={handleSettingsPress}
-            activeOpacity={0.7}
-            accessibilityLabel="Open Settings"
-            accessibilityRole="button"
-          >
-            <GearIcon size={20} color={theme.colors.secondary} />
-          </TouchableOpacity>
-        </View>
-      </View>
+    <View style={styles.rootContainer}>
+      {/* Universal Inset AppHeader */}
+      <AppHeader variant="tab" isHome />
 
       {/* Scrollable Content Area */}
       {isLoading && !refreshing ? (
@@ -301,11 +239,12 @@ export default function HomeScreen() {
 
         {/* Animated Count-up Hero Balance */}
         <View style={styles.heroAmountRow}>
+          {metrics.totalBalance < 0 && <Text style={styles.heroCurrency}>-</Text>}
           <Text style={styles.heroCurrency}>₹</Text>
           <CountUpText
-            value={metrics.totalBalance}
+            value={Math.abs(metrics.totalBalance)}
             style={styles.heroAmountText}
-            formatter={(v) => v.toLocaleString('en-IN')}
+            formatter={(v) => Math.abs(v).toLocaleString('en-IN')}
           />
           <Text style={styles.heroDecimals}>.00</Text>
         </View>
@@ -320,7 +259,7 @@ export default function HomeScreen() {
             <View style={styles.stripTextBlock}>
               <Text style={styles.stripLabel}>Income</Text>
               <Text style={styles.incomeAmount} numberOfLines={1}>
-                +₹{metrics.monthlyIncome.toLocaleString('en-IN')}
+                {formatMoney(metrics.monthlyIncome, { showPositiveSign: true, decimals: 0 })}
               </Text>
             </View>
           </View>
@@ -333,7 +272,7 @@ export default function HomeScreen() {
             <View style={styles.stripTextBlock}>
               <Text style={styles.stripLabel}>Expenses</Text>
               <Text style={styles.expenseAmount} numberOfLines={1}>
-                -₹{metrics.monthlyExpenses.toLocaleString('en-IN')}
+                {formatMoney(metrics.monthlyExpenses > 0 ? -metrics.monthlyExpenses : 0, { decimals: 0 })}
               </Text>
             </View>
           </View>
@@ -345,7 +284,7 @@ export default function HomeScreen() {
         <View style={styles.emptyWalletCard}>
           <Text style={styles.emptyWalletTitle}>Create your first wallet</Text>
           <Text style={styles.emptyWalletSubtitle}>
-            No wallets were found in your account. Add a wallet in Supabase to start tracking balances.
+            No wallets were found in your account. Add a wallet in the Wallets tab to start tracking balances.
           </Text>
         </View>
       )}
@@ -406,10 +345,22 @@ export default function HomeScreen() {
           </>
         ) : (
           <View style={styles.noBudgetPromptBox}>
-            <Text style={styles.noBudgetPromptTitle}>Set a monthly budget</Text>
+            <Text style={styles.noBudgetPromptTitle}>Set category budgets in Planning</Text>
             <Text style={styles.noBudgetPromptSubtitle}>
-              Assign budget limits to your categories in Supabase to view live progress, daily caps, and remaining allowances.
+              Assign budget limits to your categories in Planning to view live progress, daily caps, and remaining allowances.
             </Text>
+            <TouchableOpacity
+              style={styles.openPlanningBtn}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/(tabs)/planning' as any);
+              }}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Open Planning"
+            >
+              <Text style={styles.openPlanningBtnText}>Open Planning</Text>
+            </TouchableOpacity>
           </View>
         )}
       </View>
@@ -432,16 +383,14 @@ export default function HomeScreen() {
       <View style={styles.transactionsSection}>
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Recent Transactions</Text>
-          {metrics.recentTransactions.length > 0 && (
-            <TouchableOpacity
-              style={styles.seeAllBtn}
-              onPress={() => router.push('/add' as any)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.seeAllText}>Add New</Text>
-              <ChevronRightIcon size={16} color={theme.colors.primary} />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            style={styles.seeAllBtn}
+            onPress={() => router.push('/transactions' as any)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.seeAllText}>See all</Text>
+            <ChevronRightIcon size={16} color={theme.colors.primary} />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.transactionsCard}>
@@ -1062,8 +1011,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   noBudgetPromptTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: theme.colors.onSurface,
     marginBottom: 4,
   },
@@ -1071,6 +1020,20 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: theme.colors.secondary,
     lineHeight: 17,
+    marginBottom: 12,
+  },
+  openPlanningBtn: {
+    alignSelf: 'flex-start',
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    ...theme.shadows.card,
+  },
+  openPlanningBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '700',
   },
   emptyTransactionBox: {
     alignItems: 'center',

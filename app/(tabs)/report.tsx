@@ -50,6 +50,7 @@ import {
   formatIndianCurrencyWorklet,
 } from '../../src/lib/reportData';
 import { DonutChart } from '../../src/components/DonutChart';
+import { AppHeader } from '../../src/components/AppHeader';
 import {
   CalendarIcon,
   ChevronLeftIcon,
@@ -1066,25 +1067,9 @@ export default function ReportScreen() {
   }, []);
 
   return (
-    <View style={[styles.root, { paddingTop: Math.max(insets.top, 12) }]}>
-      {/* Pinned Top Bar */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerCaption}>Analytics</Text>
-          <Text style={styles.headerTitle}>Report</Text>
-        </View>
-
-        <View style={styles.headerRightActions}>
-          <TouchableOpacity
-            style={styles.headerIconBtn}
-            onPress={handleShare}
-            activeOpacity={0.7}
-            accessibilityLabel="Export report"
-          >
-            <ShareIcon size={18} color={theme.colors.onSurface} />
-          </TouchableOpacity>
-        </View>
-      </View>
+    <View style={styles.root}>
+      {/* Universal Inset AppHeader */}
+      <AppHeader variant="tab" title="Report" />
 
       {/* 0. Month Selector Pill (Section 0) */}
       <Animated.View style={animStyle0}>

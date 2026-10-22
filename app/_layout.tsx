@@ -5,9 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { configureReanimatedLogger, ReanimatedLogLevel } from 'react-native-reanimated';
 
-// Reanimated 3.16+ strict-mode logger configuration:
-// Per Reanimated official documentation, strict: false disables development-mode warnings
-// for render-phase mutable access from external libraries (like @shopify/react-native-skia reconciler)
+// Reanimated strict-mode logger configuration:
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
   strict: false,
@@ -119,16 +117,33 @@ function RootLayoutContent() {
           <Stack.Screen
             name="settings"
             options={{
-              presentation: 'modal',
-              headerShown: true,
-              title: 'Settings',
-              headerStyle: { backgroundColor: theme.colors.surfaceContainerLowest },
-              headerTintColor: theme.colors.onSurface,
-              headerTitleStyle: { fontWeight: '700' },
+              headerShown: false,
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="categories"
+            options={{
+              headerShown: false,
+              animation: 'slide_from_right',
             }}
           />
           <Stack.Screen
             name="profile"
+            options={{
+              headerShown: false,
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="transactions"
+            options={{
+              headerShown: false,
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen
+            name="notifications"
             options={{
               headerShown: false,
               animation: 'slide_from_right',

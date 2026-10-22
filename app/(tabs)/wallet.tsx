@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import {
@@ -24,6 +25,7 @@ import {
 } from '../../src/lib/api';
 import { WalletBalance, Transaction } from '../../src/types/database';
 import { theme } from '../../src/theme';
+import { AppHeader, HeaderActionButton } from '../../src/components/AppHeader';
 import {
   PlusIcon,
   MinusIcon,
@@ -133,6 +135,7 @@ const WalletActivityRow = React.memo(function WalletActivityRow({
 });
 
 export default function WalletScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
 
@@ -448,38 +451,30 @@ export default function WalletScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Universal Inset AppHeader */}
+      <AppHeader
+        variant="tab"
+        title="Wallets"
+        rightExtra={
+          <HeaderActionButton
+            onPress={handleOpenCreateModal}
+            accessibilityLabel="Add new wallet"
+            variant="primary"
+            icon={<PlusIcon size={20} color={theme.colors.white} />}
+          />
+        }
+      />
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContainer,
           {
-            paddingTop: insets.top + 12,
+            paddingTop: 8,
             paddingBottom: insets.bottom + 84, // Ensure spacing above tab bar
           },
         ]}
       >
-        {/* Header Bar */}
-        <View style={styles.header}>
-          <View style={styles.headerTextGroup}>
-            <Text style={styles.headerTitle}>Wallets</Text>
-            <Text style={styles.headerSubtitle}>
-              Total balance:{' '}
-              <Text style={styles.headerTotalBold}>
-                ₹{totalBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </Text>
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.addWalletHeaderBtn}
-            onPress={handleOpenCreateModal}
-            activeOpacity={0.8}
-            accessibilityRole="button"
-            accessibilityLabel="Create Wallet"
-          >
-            <PlusIcon size={22} color="#ffffff" />
-          </TouchableOpacity>
-        </View>
 
         {/* Wallets Carousel / Empty State */}
         {wallets.length === 0 ? (
@@ -680,6 +675,14 @@ export default function WalletScreen() {
                   </Text>
                 )}
               </View>
+              <TouchableOpacity
+                style={styles.seeAllBtn}
+                onPress={() => router.push('/transactions' as any)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.seeAllText}>See all</Text>
+                <ChevronRightIcon size={16} color={theme.colors.primary} />
+              </TouchableOpacity>
             </View>
 
             {walletTransactions.length === 0 ? (
@@ -1413,6 +1416,16 @@ const styles = StyleSheet.create({
   recentSubtitleBold: {
     fontWeight: '600',
     color: theme.colors.onSurface,
+  },
+  seeAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  seeAllText: {
+    ...theme.typography.callout,
+    fontWeight: '600',
+    color: theme.colors.primary,
   },
   activityCard: {
     backgroundColor: theme.colors.surfaceContainerLowest,

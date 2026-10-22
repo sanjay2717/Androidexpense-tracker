@@ -186,21 +186,37 @@ export function ShieldCheckIcon({ size = 18, color = theme.colors.primary }: Ico
 export function CategoryIcon({ name, color = theme.colors.primary, size = 20 }: { name?: string; color?: string; size?: number }) {
   const normalized = (name || '').toLowerCase();
 
-  if (normalized.includes('coffee') || normalized.includes('food') || normalized.includes('cafe') || normalized.includes('dining')) {
+  if (normalized.includes('coffee') || normalized.includes('food') || normalized.includes('cafe') || normalized.includes('dining') || normalized.includes('restaurant')) {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         <Path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8ZM6 1v3M10 1v3M14 1v3" stroke={color} strokeWidth={2} strokeLinecap="round" />
       </Svg>
     );
   }
-  if (normalized.includes('travel') || normalized.includes('uber') || normalized.includes('ride') || normalized.includes('car') || normalized.includes('fuel')) {
+  if (normalized.includes('grocer') || normalized.includes('shop') || normalized.includes('cart') || normalized.includes('market')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Circle cx="9" cy="20" r="1.5" fill={color} />
+        <Circle cx="18" cy="20" r="1.5" fill={color} />
+        <Path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('travel') || normalized.includes('uber') || normalized.includes('ride') || normalized.includes('car') || normalized.includes('fuel') || normalized.includes('transit') || normalized.includes('commute')) {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         <Path d="M5 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0ZM15 17a2 2 0 1 0 4 0 2 2 0 0 0-4 0ZM5 17H3v-6l2-5h14l2 5v6h-2" stroke={color} strokeWidth={2} strokeLinecap="round" />
       </Svg>
     );
   }
-  if (normalized.includes('movie') || normalized.includes('cinema') || normalized.includes('fun') || normalized.includes('ticket')) {
+  if (normalized.includes('rent') || normalized.includes('home') || normalized.includes('house') || normalized.includes('housing')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="M3 10.182V20a1 1 0 0 0 1 1h5v-6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v6h5a1 1 0 0 0 1-1v-9.818a1 1 0 0 0-.39-.796l-8-6.154a1 1 0 0 0-1.22 0l-8 6.154A1 1 0 0 0 3 10.182Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('movie') || normalized.includes('cinema') || normalized.includes('fun') || normalized.includes('ticket') || normalized.includes('theater')) {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         <Rect x="2" y="4" width="20" height="16" rx="2" stroke={color} strokeWidth={2} />
@@ -208,7 +224,7 @@ export function CategoryIcon({ name, color = theme.colors.primary, size = 20 }: 
       </Svg>
     );
   }
-  if (normalized.includes('sub') || normalized.includes('netflix') || normalized.includes('bill') || normalized.includes('stream')) {
+  if (normalized.includes('sub') || normalized.includes('netflix') || normalized.includes('bill') || normalized.includes('stream') || normalized.includes('receipt')) {
     return (
       <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
         <Rect x="4" y="4" width="16" height="16" rx="2" stroke={color} strokeWidth={2} />
@@ -216,6 +232,107 @@ export function CategoryIcon({ name, color = theme.colors.primary, size = 20 }: 
       </Svg>
     );
   }
+  if (normalized.includes('health') || normalized.includes('medic') || normalized.includes('pharma') || normalized.includes('doctor') || normalized.includes('cardio')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('gym') || normalized.includes('fit') || normalized.includes('workout') || normalized.includes('sport')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12" stroke={color} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('flight') || normalized.includes('plane') || normalized.includes('air') || normalized.includes('vacation')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('book') || normalized.includes('study') || normalized.includes('learn') || normalized.includes('school') || normalized.includes('education')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('music') || normalized.includes('audio') || normalized.includes('headphone') || normalized.includes('song')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="M3 18v-6a9 9 0 0 1 18 0v6M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5ZM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('pet') || normalized.includes('dog') || normalized.includes('cat') || normalized.includes('animal')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Circle cx="6" cy="10" r="2" fill={color} />
+        <Circle cx="18" cy="10" r="2" fill={color} />
+        <Circle cx="10" cy="6" r="2" fill={color} />
+        <Circle cx="14" cy="6" r="2" fill={color} />
+        <Path d="M12 13c-2.5 0-4.5 1.5-4.5 3.5 0 1.8 1.5 3.5 4.5 3.5s4.5-1.7 4.5-3.5c0-2-2-3.5-4.5-3.5Z" stroke={color} strokeWidth={1.8} />
+      </Svg>
+    );
+  }
+  if (normalized.includes('wifi') || normalized.includes('internet')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('cloth') || normalized.includes('apparel') || normalized.includes('shirt') || normalized.includes('wear')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('salary') || normalized.includes('wage') || normalized.includes('payroll') || normalized.includes('income')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Rect x="2" y="6" width="20" height="12" rx="2" stroke={color} strokeWidth={2} />
+        <Circle cx="12" cy="12" r="2.5" stroke={color} strokeWidth={2} />
+        <Path d="M6 12h.01M18 12h.01" stroke={color} strokeWidth={2.5} strokeLinecap="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('laptop') || normalized.includes('tech') || normalized.includes('freelance') || normalized.includes('consult')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Rect x="3" y="4" width="18" height="12" rx="2" stroke={color} strokeWidth={2} />
+        <Path d="M1 20h22M8 20v-2M16 20v-2" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('invest') || normalized.includes('dividend') || normalized.includes('stock') || normalized.includes('crypto')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Path d="m23 6-9.5 9.5-5-5L1 18M17 6h6v6" stroke={color} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('gift') || normalized.includes('donate') || normalized.includes('present')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Rect x="3" y="8" width="18" height="14" rx="2" stroke={color} strokeWidth={2} />
+        <Path d="M12 8v14M3 13h18M12 8H8a2 2 0 1 1 0-4c3 0 4 4 4 4ZM12 8h4a2 2 0 1 0 0-4c-3 0-4 4-4 4Z" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+    );
+  }
+  if (normalized.includes('game') || normalized.includes('playstation') || normalized.includes('esport')) {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+        <Rect x="2" y="6" width="20" height="12" rx="4" stroke={color} strokeWidth={2} />
+        <Path d="M6 12h4M8 10v4M15 11h.01M17 13h.01" stroke={color} strokeWidth={2.5} strokeLinecap="round" />
+      </Svg>
+    );
+  }
+
   // Default wallet / payment
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -582,13 +699,94 @@ export function ShareIcon({ size = 20, color = theme.colors.onSurface }: IconPro
   );
 }
 
-export function InfoIcon({ size = 20, color = theme.colors.secondary }: IconProps) {
+export function SearchIcon({ size = 20, color = theme.colors.secondary }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
-      <Path d="M12 16v-4M12 8h.01" stroke={color} strokeWidth={2} strokeLinecap="round" />
+      <Circle cx="11" cy="11" r="7" stroke={color} strokeWidth={2} />
+      <Path d="m20 20-3.5-3.5" stroke={color} strokeWidth={2} strokeLinecap="round" />
     </Svg>
   );
 }
 
+export function CheckIcon({ size = 16, color = theme.colors.white }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M20 6 9 17l-5-5" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
 
+export function ChevronDownIcon({ size = 16, color = theme.colors.secondary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="m6 9 6 6 6-6" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function InfoIcon({ size = 20, color = theme.colors.secondary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={2} />
+      <Path d="M12 8h.01M12 12v4" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function SunIcon({ size = 20, color = theme.colors.amber }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="5" stroke={color} strokeWidth={2} fill={color} />
+      <Path
+        d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+        stroke={color}
+        strokeWidth={2}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
+export function GridIcon({ size = 20, color = theme.colors.primary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="3" y="3" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
+      <Rect x="14" y="3" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
+      <Rect x="14" y="14" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
+      <Rect x="3" y="14" width="7" height="7" rx="1.5" stroke={color} strokeWidth={2} />
+    </Svg>
+  );
+}
+export function DoneAllIcon({ size = 18, color = theme.colors.primary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M18 6 7 17l-5-5M22 10l-7.5 7.5M16 6l-3.5 3.5"
+        stroke={color}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function SpaIcon({ size = 32, color = theme.colors.primary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M12 3C8 8 4 12 4 16a8 8 0 0 0 16 0c0-4-4-8-8-13Z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+export function SmartToyIcon({ size = 20, color = theme.colors.primary }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="4" y="6" width="16" height="14" rx="3" stroke={color} strokeWidth={2} />
+      <Path d="M12 2v4M9 11h.01M15 11h.01M9 15h6" stroke={color} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}

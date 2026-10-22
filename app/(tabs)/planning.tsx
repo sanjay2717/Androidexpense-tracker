@@ -50,6 +50,7 @@ import {
 } from '../../src/components/Icons';
 import { NumericKeypad } from '../../src/components/NumericKeypad';
 import { PlanningSkeleton } from '../../src/components/Skeleton';
+import { AppHeader, HeaderActionButton } from '../../src/components/AppHeader';
 
 // Color choices for goals (strictly curated from theme tokens & harmony)
 const GOAL_COLORS = [
@@ -575,49 +576,41 @@ export default function PlanningScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.root, { paddingTop: insets.top }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Planning</Text>
-        </View>
+      <View style={styles.root}>
+        <AppHeader variant="tab" title="Planning" />
         <PlanningSkeleton />
       </View>
     );
   }
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
-      {/* Top Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerSubtitle}>FINANCIAL HORIZON</Text>
-          <Text style={styles.headerTitle}>Planning</Text>
-        </View>
-        {activeTab === 'budgets' ? (
-          <TouchableOpacity
-            style={styles.quickActionBtn}
+    <View style={styles.root}>
+      {/* Universal Inset AppHeader */}
+      <AppHeader
+        variant="tab"
+        title="Planning"
+        rightExtra={
+          <HeaderActionButton
             onPress={() => {
-              // Open sheet for first category that has no budget limit, or the first category
-              const targetCat = expenseCategories.find((c) => !c.budget_limit) || expenseCategories[0];
-              if (targetCat) {
-                handleOpenBudgetSheet(targetCat);
+              if (activeTab === 'budgets') {
+                const targetCat =
+                  expenseCategories.find((c) => !c.budget_limit) ||
+                  expenseCategories[0];
+                if (targetCat) {
+                  handleOpenBudgetSheet(targetCat);
+                }
+              } else {
+                handleOpenCreateGoal();
               }
             }}
-            activeOpacity={0.8}
-          >
-            <PlusIcon size={16} color={theme.colors.surfaceContainerLowest} />
-            <Text style={styles.quickActionText}>Set Budget</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.quickActionBtn, { backgroundColor: theme.colors.emeraldDark }]}
-            onPress={handleOpenCreateGoal}
-            activeOpacity={0.8}
-          >
-            <PlusIcon size={16} color={theme.colors.surfaceContainerLowest} />
-            <Text style={styles.quickActionText}>New Goal</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+            accessibilityLabel={
+              activeTab === 'budgets' ? 'Set budget' : 'New goal'
+            }
+            variant="primary"
+            icon={<PlusIcon size={20} color={theme.colors.white} />}
+          />
+        }
+      />
 
       {/* Segmented Control Track */}
       <View style={styles.segmentedContainer}>
