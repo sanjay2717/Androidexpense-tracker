@@ -451,6 +451,180 @@ export function useAddTransaction() {
   });
 }
 
+export interface UpdateTransactionInput {
+  id: string;
+  wallet_id: string;
+  category_id?: string | null;
+  amount: number;
+  type: 'expense' | 'income';
+  date: string;
+  note?: string;
+}
+
+/**
+ * Mutation to update an existing transaction row
+ */
+export function useUpdateTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdateTransactionInput) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const payload: any = {
+        wallet_id: input.wallet_id,
+        category_id: input.category_id || null,
+        amount: input.amount,
+        type: input.type,
+        date: input.date,
+        note: input.note ? input.note.trim() : null,
+      };
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .update(payload)
+        .eq('id', input.id)
+        .select(`
+          id,
+          amount,
+          type,
+          note,
+          date,
+          created_at,
+          wallet_id,
+          category_id,
+          is_adjustment,
+          categories (id, name, color, icon),
+          wallets (id, name)
+        `)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
+    },
+  });
+}
+
+/**
+ * Mutation to delete a transaction by id
+ */
+export function useDeleteTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
+    },
+  });
+}
+
+/**
+ * Query hook to fetch transactions for a date range (limit 2000)
+ */
+export function useAllTransactions(options?: { startDate?: string; endDate?: string }) {
+  const { user } = useAuth();
+  const userId = user?.id;
+  const startDate = options?.startDate;
+  const endDate = options?.endDate;
+
+  return useQuery<Transaction[]>({
+    queryKey: ['transactions', 'all', userId, startDate, endDate],
+    queryFn: async () => {
+      if (!isSupabaseConfigured) return [];
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return [];
+
+      let query = supabase
+        .from('transactions')
+        .select(`
+          id,
+          amount,
+          type,
+          note,
+          date,
+          created_at,
+          wallet_id,
+          category_id,
+          is_adjustment,
+          categories (id, name, color, icon),
+          wallets (id, name, color, icon)
+        `)
+        .order('date', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false, nullsFirst: false })
+        .limit(2000);
+
+      if (startDate) {
+        query = query.gte('date', startDate);
+      }
+      if (endDate) {
+        query = query.lte('date', endDate);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        if (!error.message?.includes('permission denied')) {
+          console.warn('Error fetching all transactions:', error.message);
+        }
+        return [];
+      }
+
+      const rows: Transaction[] = (data || []).map((t: any) => ({
+        id: String(t.id),
+        amount: Number(t.amount) || 0,
+        type: (t.type || 'expense').toLowerCase() as 'expense' | 'income',
+        note: t.note || '',
+        date: t.date || t.created_at || new Date().toISOString(),
+        created_at: t.created_at,
+        wallet_id: t.wallet_id,
+        category_id: t.category_id,
+        is_adjustment: Boolean(t.is_adjustment),
+        category: Array.isArray(t.categories) ? t.categories[0] : t.categories,
+        wallet: Array.isArray(t.wallets) ? t.wallets[0] : t.wallets,
+      }));
+
+      rows.sort((a, b) => {
+        const dateA = new Date(a.date || 0).getTime();
+        const dateB = new Date(b.date || 0).getTime();
+        if (dateB !== dateA) return dateB - dateA;
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        if (timeB !== timeA) return timeB - timeA;
+        return String(b.id).localeCompare(String(a.id));
+      });
+
+      return rows;
+    },
+    enabled: !!userId,
+  });
+}
+
+
 export interface CreateWalletInput {
   name: string;
   opening_balance?: number;
@@ -615,6 +789,173 @@ export function useUpdateCategoryBudget() {
     },
   });
 }
+
+export interface CreateCategoryInput {
+  name: string;
+  type: 'expense' | 'income';
+  color?: string;
+  icon?: string;
+}
+
+/**
+ * Mutation to create a category (without user_id, defaults to auth.uid())
+ */
+export function useCreateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateCategoryInput) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const payload: any = {
+        name: input.name.trim(),
+        type: input.type,
+        color: input.color || '#FF2D78',
+        icon: input.icon || 'restaurant',
+      };
+
+      const { data, error } = await supabase
+        .from('categories')
+        .insert([payload])
+        .select('id, name, color, icon, type, budget_limit')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data as Category;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
+    },
+  });
+}
+
+export interface UpdateCategoryInput {
+  id: string;
+  name?: string;
+  type?: 'expense' | 'income';
+  color?: string;
+  icon?: string;
+}
+
+/**
+ * Mutation to update an existing category.
+ * Leaves budget_limit untouched (it is managed in Planning).
+ */
+export function useUpdateCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: UpdateCategoryInput) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const updateData: any = {};
+      if (input.name !== undefined) updateData.name = input.name.trim();
+      if (input.type !== undefined) updateData.type = input.type;
+      if (input.color !== undefined) updateData.color = input.color;
+      if (input.icon !== undefined) updateData.icon = input.icon;
+
+      const { data, error } = await supabase
+        .from('categories')
+        .update(updateData)
+        .eq('id', input.id)
+        .select('id, name, color, icon, type, budget_limit')
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      return data as Category;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
+    },
+  });
+}
+
+/**
+ * Mutation to delete a category.
+ * Explicitly clears category_id on any associated transactions so they become Uncategorized,
+ * then removes the category record.
+ */
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (categoryId: string) => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      // Proactively decouple transactions to avoid FK constraints
+      const { error: unlinkError } = await supabase
+        .from('transactions')
+        .update({ category_id: null })
+        .eq('category_id', categoryId);
+
+      if (unlinkError) {
+        console.warn('Notice while clearing category_id on transactions:', unlinkError.message);
+      }
+
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', categoryId);
+
+      if (error) {
+        throw error;
+      }
+      return categoryId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['report'] });
+    },
+  });
+}
+
+/**
+ * Mutation to delete all transactions for the authenticated user.
+ * Wallets, categories, and goals stay completely untouched.
+ */
+export function useDeleteAllTransactions() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!isSupabaseConfigured) {
+        throw new Error('Supabase is not configured.');
+      }
+
+      const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .not('id', 'is', null);
+
+      if (error) {
+        throw error;
+      }
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+  });
+}
+
 
 /**
  * Fetch goals from Supabase

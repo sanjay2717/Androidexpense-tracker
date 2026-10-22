@@ -11,7 +11,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -30,7 +30,9 @@ import {
   fetchCategories,
   fetchWalletBalances,
   useAddTransaction,
+  useUpdateTransaction,
 } from '../src/lib/api';
+import { supabase } from '../src/lib/supabase';
 import { Category, WalletBalance, TransactionType } from '../src/types/database';
 import {
   ArrowDownIcon,
@@ -48,6 +50,10 @@ const LAST_USED_CAT_INCOME_KEY = '@putu_last_cat_income';
 
 export default function AddTransactionScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ id?: string }>();
+  const editId = params.id;
+  const isEditMode = !!editId;
+
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
 
@@ -70,8 +76,9 @@ export default function AddTransactionScreen() {
   const [inlineError, setInlineError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
 
-  // Mutation
+  // Mutations
   const addTxMutation = useAddTransaction();
+  const updateTxMutation = useUpdateTransaction();
 
   // Animations
   const sheetTranslateY = useSharedValue(600);
@@ -87,7 +94,7 @@ export default function AddTransactionScreen() {
     sheetOpacity.set(withTiming(1, { duration: 250 }));
   }, []);
 
-  // Fetch Wallets & Categories & Restore Last Used
+  // Fetch Wallets & Categories & Restore Last Used or Prefill Edit Data
   useEffect(() => {
     async function loadInitialData() {
       try {
@@ -100,24 +107,50 @@ export default function AddTransactionScreen() {
         setCategories(cats);
         setWallets(wals);
 
-        // Restore last wallet or default to first
-        const savedWalletId = await AsyncStorage.getItem(LAST_USED_WALLET_KEY);
-        if (savedWalletId && wals.some((w) => (w.id || w.wallet_id) === savedWalletId)) {
-          setSelectedWalletId(savedWalletId);
-        } else if (wals.length > 0) {
-          const firstId = wals[0].id || wals[0].wallet_id || null;
-          setSelectedWalletId(firstId);
-        }
+        if (editId) {
+          // Edit mode: fetch existing transaction
+          const { data: txData } = await supabase
+            .from('transactions')
+            .select('id, amount, type, note, date, wallet_id, category_id')
+            .eq('id', editId)
+            .single();
 
-        // Restore last category for current type
-        const catKey = type === 'expense' ? LAST_USED_CAT_EXPENSE_KEY : LAST_USED_CAT_INCOME_KEY;
-        const savedCatId = await AsyncStorage.getItem(catKey);
-        const matchingCats = cats.filter((c) => (c.type || 'expense') === type);
+          if (txData) {
+            const txType = (txData.type || 'expense').toLowerCase() as TransactionType;
+            setType(txType);
+            typeIndicatorPos.set(txType === 'income' ? 1 : 0);
+            setAmountStr(String(txData.amount || '0'));
+            setNote(txData.note || '');
+            if (txData.date) {
+              setDate(new Date(txData.date));
+            }
+            if (txData.wallet_id) {
+              setSelectedWalletId(txData.wallet_id);
+            }
+            if (txData.category_id) {
+              setSelectedCategoryId(txData.category_id);
+            }
+          }
+        } else {
+          // New transaction mode: restore last used wallet
+          const savedWalletId = await AsyncStorage.getItem(LAST_USED_WALLET_KEY);
+          if (savedWalletId && wals.some((w) => (w.id || w.wallet_id) === savedWalletId)) {
+            setSelectedWalletId(savedWalletId);
+          } else if (wals.length > 0) {
+            const firstId = wals[0].id || wals[0].wallet_id || null;
+            setSelectedWalletId(firstId);
+          }
 
-        if (savedCatId && matchingCats.some((c) => c.id === savedCatId)) {
-          setSelectedCategoryId(savedCatId);
-        } else if (matchingCats.length > 0) {
-          setSelectedCategoryId(matchingCats[0].id);
+          // Restore last category for current type
+          const catKey = type === 'expense' ? LAST_USED_CAT_EXPENSE_KEY : LAST_USED_CAT_INCOME_KEY;
+          const savedCatId = await AsyncStorage.getItem(catKey);
+          const matchingCats = cats.filter((c) => (c.type || 'expense') === type);
+
+          if (savedCatId && matchingCats.some((c) => c.id === savedCatId)) {
+            setSelectedCategoryId(savedCatId);
+          } else if (matchingCats.length > 0) {
+            setSelectedCategoryId(matchingCats[0].id);
+          }
         }
       } catch (err) {
         console.warn('Error loading initial data in Add screen:', err);
@@ -126,7 +159,7 @@ export default function AddTransactionScreen() {
       }
     }
     loadInitialData();
-  }, []);
+  }, [editId]);
 
   // Switch type and re-select appropriate category
   const handleSwitchType = (newType: TransactionType) => {
@@ -215,7 +248,7 @@ export default function AddTransactionScreen() {
   };
 
   // Date change handler
-  const handleDateChange = (_event: any, selectedDate?: Date) => {
+  const handleDateValueChange = (_event: any, selectedDate: Date) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
@@ -264,22 +297,34 @@ export default function AddTransactionScreen() {
 
   // Save Transaction
   const handleSave = async () => {
-    if (!isFormValid || addTxMutation.isPending) return;
+    if (!isFormValid || addTxMutation.isPending || updateTxMutation.isPending) return;
 
     setInlineError(null);
     try {
       const formattedDate = date.toISOString().split('T')[0];
 
-      await addTxMutation.mutateAsync({
-        wallet_id: selectedWalletId!,
-        category_id: selectedCategoryId || undefined,
-        amount: numericAmount,
-        type,
-        date: formattedDate,
-        note: note.trim() || undefined,
-        category: selectedCategory || null,
-        wallet: selectedWallet || null,
-      });
+      if (isEditMode && editId) {
+        await updateTxMutation.mutateAsync({
+          id: editId,
+          wallet_id: selectedWalletId!,
+          category_id: selectedCategoryId || undefined,
+          amount: numericAmount,
+          type,
+          date: formattedDate,
+          note: note.trim() || undefined,
+        });
+      } else {
+        await addTxMutation.mutateAsync({
+          wallet_id: selectedWalletId!,
+          category_id: selectedCategoryId || undefined,
+          amount: numericAmount,
+          type,
+          date: formattedDate,
+          note: note.trim() || undefined,
+          category: selectedCategory || null,
+          wallet: selectedWallet || null,
+        });
+      }
 
       // Success feedback & animation
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -360,7 +405,7 @@ export default function AddTransactionScreen() {
 
         {/* Header Bar */}
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Add Transaction</Text>
+          <Text style={styles.headerTitle}>{isEditMode ? 'Edit Transaction' : 'Add Transaction'}</Text>
           <TouchableOpacity
             style={styles.closeButton}
             onPress={handleDismiss}
@@ -579,7 +624,8 @@ export default function AddTransactionScreen() {
               value={date}
               mode="date"
               display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleDateChange}
+              onValueChange={handleDateValueChange}
+              onDismiss={() => setShowDatePicker(false)}
               maximumDate={new Date()}
             />
           )}
@@ -599,13 +645,15 @@ export default function AddTransactionScreen() {
               !isFormValid && styles.saveButtonDisabled,
             ]}
             onPress={handleSave}
-            disabled={!isFormValid || addTxMutation.isPending}
+            disabled={!isFormValid || addTxMutation.isPending || updateTxMutation.isPending}
             activeOpacity={0.85}
           >
             <Text style={styles.saveCheckIcon}>✓</Text>
             <Text style={styles.saveButtonText}>
-              {addTxMutation.isPending
-                ? 'Recording...'
+              {addTxMutation.isPending || updateTxMutation.isPending
+                ? 'Saving...'
+                : isEditMode
+                ? 'Save changes'
                 : `Save ${type === 'expense' ? 'Expense' : 'Income'}`}
             </Text>
           </TouchableOpacity>
@@ -619,7 +667,7 @@ export default function AddTransactionScreen() {
               <View style={styles.successIconCircle}>
                 <Text style={styles.successCheckSymbol}>✓</Text>
               </View>
-              <Text style={styles.successTitle}>Transaction Recorded</Text>
+              <Text style={styles.successTitle}>{isEditMode ? 'Changes Saved' : 'Transaction Recorded'}</Text>
               <Text style={styles.successAmount}>
                 ₹{numericAmount.toLocaleString('en-IN')}
               </Text>

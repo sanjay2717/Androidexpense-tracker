@@ -185,6 +185,71 @@ export function PlanningSkeleton() {
   );
 }
 
+export function TransactionsSkeleton() {
+  return (
+    <View style={{ paddingHorizontal: theme.spacing.margin, gap: 12, paddingTop: 8 }}>
+      {/* Search Input Skeleton */}
+      <Skeleton width="100%" height={48} borderRadius={16} />
+
+      {/* Chips Row Skeleton */}
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        <Skeleton width={56} height={32} borderRadius={16} />
+        <Skeleton width={80} height={32} borderRadius={16} />
+        <Skeleton width={72} height={32} borderRadius={16} />
+        <Skeleton width={96} height={32} borderRadius={16} />
+      </View>
+
+      {/* Summary Strip Skeleton */}
+      <Skeleton width="100%" height={42} borderRadius={21} style={{ marginTop: 4 }} />
+
+      {/* Day Group 1 */}
+      <View style={{ marginTop: 8 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, paddingHorizontal: 4 }}>
+          <Skeleton width={60} height={14} borderRadius={4} />
+          <Skeleton width={50} height={14} borderRadius={4} />
+        </View>
+        <View style={styles.card}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Skeleton width={44} height={44} borderRadius={22} />
+            <View style={{ flex: 1, gap: 6 }}>
+              <Skeleton width="60%" height={16} borderRadius={4} />
+              <Skeleton width="40%" height={12} borderRadius={4} />
+            </View>
+            <Skeleton width={64} height={18} borderRadius={4} />
+          </View>
+          <View style={{ height: StyleSheet.hairlineWidth, backgroundColor: theme.colors.surfaceContainer, marginVertical: 12, marginLeft: 56 }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Skeleton width={44} height={44} borderRadius={22} />
+            <View style={{ flex: 1, gap: 6 }}>
+              <Skeleton width="50%" height={16} borderRadius={4} />
+              <Skeleton width="35%" height={12} borderRadius={4} />
+            </View>
+            <Skeleton width={56} height={18} borderRadius={4} />
+          </View>
+        </View>
+      </View>
+
+      {/* Day Group 2 */}
+      <View style={{ marginTop: 6 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, paddingHorizontal: 4 }}>
+          <Skeleton width={80} height={14} borderRadius={4} />
+          <Skeleton width={60} height={14} borderRadius={4} />
+        </View>
+        <View style={styles.card}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Skeleton width={44} height={44} borderRadius={22} />
+            <View style={{ flex: 1, gap: 6 }}>
+              <Skeleton width="55%" height={16} borderRadius={4} />
+              <Skeleton width="45%" height={12} borderRadius={4} />
+            </View>
+            <Skeleton width={70} height={18} borderRadius={4} />
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: theme.spacing.margin,
